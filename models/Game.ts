@@ -4,16 +4,18 @@ export interface ISectionImage {
   url: string;
 }
 
+export interface ISectionCallout {
+  type: "info" | "warn" | "note";
+  title: string;
+  text: string;
+}
+
 export interface ISection {
   _id?: mongoose.Types.ObjectId;
   title: string;
   content: string;
   images?: ISectionImage[];
-  callout?: {
-    type: "info" | "warn" | "note";
-    title: string;
-    text: string;
-  };
+  callouts?: ISectionCallout[];
   subsections?: ISection[];
 }
 
@@ -47,14 +49,13 @@ const SectionSchema: Schema = new Schema({
       url: { type: String, required: true },
     },
   ],
-  callout: {
-    type: {
-      type: String,
-      enum: ["info", "warn", "note"],
+  callouts: [
+    {
+      type: { type: String, enum: ["info", "warn", "note"] },
+      title: String,
+      text: String,
     },
-    title: String,
-    text: String,
-  },
+  ],
   subsections: {
     type: [Schema.Types.Mixed],
     default: undefined,

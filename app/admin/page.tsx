@@ -7,11 +7,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, LogOut, Moon, Sun, ChevronDown, ChevronRight, Upload, X, ImagePlus } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  LogOut,
+  Moon,
+  Sun,
+  ChevronDown,
+  ChevronRight,
+  Upload,
+  X,
+  ImagePlus,
+  Info,
+} from "lucide-react";
 import { uploadImage, deleteImage } from "@/lib/uploadImage";
 
 interface SectionImage {
   url: string;
+}
+
+interface SectionCallout {
+  type: "info" | "warn" | "note";
+  title: string;
+  text: string;
 }
 
 interface Section {
@@ -19,11 +38,7 @@ interface Section {
   title: string;
   content: string;
   images?: SectionImage[];
-  callout?: {
-    type: "info" | "warn" | "note";
-    title: string;
-    text: string;
-  };
+  callouts?: SectionCallout[];
   subsections?: Section[];
 }
 
@@ -67,10 +82,6 @@ export default function AdminPage() {
   const [sectionOpen, setSectionOpen] = useState(false);
   const [sectionTitle, setSectionTitle] = useState("");
   const [sectionContent, setSectionContent] = useState("");
-  const [hasCallout, setHasCallout] = useState(false);
-  const [calloutType, setCalloutType] = useState<"info" | "warn" | "note">("info");
-  const [calloutTitle, setCalloutTitle] = useState("");
-  const [calloutText, setCalloutText] = useState("");
   const [parentSectionPath, setParentSectionPath] = useState<number[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
@@ -82,6 +93,12 @@ export default function AdminPage() {
   const [sectionImages, setSectionImages] = useState<SectionImage[]>([]);
   const [pendingImageFiles, setPendingImageFiles] = useState<File[]>([]);
   const [imageUploading, setImageUploading] = useState(false);
+
+  // Bölüm bilgi kutuları
+  const [sectionCallouts, setSectionCallouts] = useState<SectionCallout[]>([]);
+  const [newCalloutType, setNewCalloutType] = useState<"info" | "warn" | "note">("info");
+  const [newCalloutTitle, setNewCalloutTitle] = useState("");
+  const [newCalloutText, setNewCalloutText] = useState("");
 
   useEffect(() => {
     checkAuth();
@@ -340,16 +357,9 @@ export default function AdminPage() {
         title: sectionTitle,
         content: sectionContent,
         images: uploadedImages.length > 0 ? uploadedImages : undefined,
+        callouts: sectionCallouts.length > 0 ? sectionCallouts : undefined,
         subsections: [],
       };
-
-      if (hasCallout) {
-        newSection.callout = {
-          type: calloutType,
-          title: calloutTitle,
-          text: calloutText,
-        };
-      }
 
       const updatedSections = addSubsectionAtPath(selectedGame.sections, parentSectionPath, newSection);
 
@@ -378,12 +388,12 @@ export default function AdminPage() {
         setSectionOpen(false);
         setSectionTitle("");
         setSectionContent("");
-        setHasCallout(false);
-        setCalloutTitle("");
-        setCalloutText("");
         setParentSectionPath([]);
         setSectionImages([]);
         setPendingImageFiles([]);
+        setSectionCallouts([]);
+        setNewCalloutTitle("");
+        setNewCalloutText("");
       }
     } catch (error) {
       console.error("Bölüm eklenemedi:", error);
@@ -420,16 +430,9 @@ export default function AdminPage() {
         title: sectionTitle,
         content: sectionContent,
         images: uploadedImages.length > 0 ? uploadedImages : undefined,
+        callouts: sectionCallouts.length > 0 ? sectionCallouts : undefined,
         subsections: existingSection?.subsections || [],
       };
-
-      if (hasCallout) {
-        updatedSection.callout = {
-          type: calloutType,
-          title: calloutTitle,
-          text: calloutText,
-        };
-      }
 
       const updatedSections = setSectionAtPath(selectedGame.sections, editingSectionPath, updatedSection);
 
@@ -451,12 +454,12 @@ export default function AdminPage() {
         setEditSectionOpen(false);
         setSectionTitle("");
         setSectionContent("");
-        setHasCallout(false);
-        setCalloutTitle("");
-        setCalloutText("");
         setEditingSectionPath([]);
         setSectionImages([]);
         setPendingImageFiles([]);
+        setSectionCallouts([]);
+        setNewCalloutTitle("");
+        setNewCalloutText("");
       }
     } catch (error) {
       console.error("Bölüm düzenlenemedi:", error);
@@ -542,12 +545,11 @@ export default function AdminPage() {
                   setParentSectionPath(path);
                   setSectionTitle("");
                   setSectionContent("");
-                  setHasCallout(false);
-                  setCalloutType("info");
-                  setCalloutTitle("");
-                  setCalloutText("");
                   setSectionImages([]);
                   setPendingImageFiles([]);
+                  setSectionCallouts([]);
+                  setNewCalloutTitle("");
+                  setNewCalloutText("");
                   setSectionOpen(true);
                 }}
               >
@@ -560,18 +562,11 @@ export default function AdminPage() {
                 onClick={() => {
                   setSectionTitle(section.title);
                   setSectionContent(section.content);
-                  setHasCallout(!!section.callout);
-                  if (section.callout) {
-                    setCalloutType(section.callout.type);
-                    setCalloutTitle(section.callout.title);
-                    setCalloutText(section.callout.text);
-                  } else {
-                    setCalloutType("info");
-                    setCalloutTitle("");
-                    setCalloutText("");
-                  }
                   setSectionImages(section.images || []);
                   setPendingImageFiles([]);
+                  setSectionCallouts(section.callouts || []);
+                  setNewCalloutTitle("");
+                  setNewCalloutText("");
                   setEditingSectionPath(path);
                   setEditSectionOpen(true);
                 }}
@@ -601,9 +596,16 @@ export default function AdminPage() {
               </div>
             )}
             <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">{section.content}</p>
-            {section.callout && (
-              <div className="mt-2 text-xs text-muted-foreground">
-                📌 {section.callout.type} - {section.callout.title}: {section.callout.text}
+            {section.callouts && section.callouts.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {section.callouts.map((callout, idx) => (
+                  <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span className="bg-primary text-primary-foreground w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
+                      {idx + 1}
+                    </span>
+                    📌 {callout.type} - {callout.title}: {callout.text}
+                  </div>
+                ))}
               </div>
             )}
             {section.subsections && section.subsections.length > 0 && (
@@ -612,7 +614,7 @@ export default function AdminPage() {
                   Alt Bölümler ({section.subsections.length}):
                 </div>
                 {section.subsections.map((subsection, subIdx) =>
-                  renderSection(subsection, [...path, subIdx], depth + 1)
+                  renderSection(subsection, [...path, subIdx], depth + 1),
                 )}
               </div>
             )}
@@ -944,6 +946,10 @@ export default function AdminPage() {
                           setParentSectionPath([]);
                           setSectionImages([]);
                           setPendingImageFiles([]);
+                          setSectionCallouts([]);
+                          setNewCalloutType("info");
+                          setNewCalloutTitle("");
+                          setNewCalloutText("");
                         }
                       }}
                     >
@@ -954,10 +960,10 @@ export default function AdminPage() {
                             setParentSectionPath([]);
                             setSectionTitle("");
                             setSectionContent("");
-                            setHasCallout(false);
-                            setCalloutType("info");
-                            setCalloutTitle("");
-                            setCalloutText("");
+                            setSectionCallouts([]);
+                            setNewCalloutType("info");
+                            setNewCalloutTitle("");
+                            setNewCalloutText("");
                             setSectionImages([]);
                             setPendingImageFiles([]);
                           }}
@@ -988,52 +994,123 @@ export default function AdminPage() {
                               id="sectionContentAdd"
                               value={sectionContent}
                               onChange={(e) => setSectionContent(e.target.value)}
-                              placeholder="Bölüm içeriğini buraya yazın... Resim eklemek için [resim:1] yazın"
+                              placeholder="Bölüm içeriğini buraya yazın... Resim için [resim:1], kutu için [kutu:1] yazın"
                               className="min-h-50"
                             />
                           </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id="hasCallout"
-                              checked={hasCallout}
-                              onChange={(e) => setHasCallout(e.target.checked)}
-                              className="rounded"
-                            />
-                            <Label htmlFor="hasCallout">Bilgi Kutusu Ekle</Label>
-                          </div>
-                          {hasCallout && (
-                            <div className="space-y-4 p-4 border border-border rounded-lg">
-                              <div>
-                                <Label>Tip</Label>
+                          {/* Bilgi Kutuları */}
+                          <div className="space-y-3 p-4 border border-border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <Label className="flex items-center gap-2">
+                                <Info className="h-4 w-4" />
+                                Bilgi Kutuları
+                              </Label>
+                            </div>
+
+                            {/* Mevcut kutular */}
+                            {sectionCallouts.length > 0 && (
+                              <div className="space-y-2">
+                                {sectionCallouts.map((callout, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                                    <span className="bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                                      {idx + 1}
+                                    </span>
+                                    <span
+                                      className={`text-xs px-2 py-0.5 rounded ${
+                                        callout.type === "info"
+                                          ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                                          : callout.type === "warn"
+                                            ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                                            : "bg-green-500/20 text-green-600 dark:text-green-400"
+                                      }`}
+                                    >
+                                      {callout.type === "info" ? "Bilgi" : callout.type === "warn" ? "Uyarı" : "Not"}
+                                    </span>
+                                    <span className="text-sm flex-1 truncate">{callout.title}</span>
+                                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">[kutu:{idx + 1}]</code>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const textarea = document.getElementById(
+                                          "sectionContentAdd",
+                                        ) as HTMLTextAreaElement;
+                                        if (textarea) {
+                                          const pos = textarea.selectionStart;
+                                          const text = sectionContent;
+                                          setSectionContent(text.slice(0, pos) + `[kutu:${idx + 1}]` + text.slice(pos));
+                                        }
+                                      }}
+                                      className="h-6 px-2 text-xs"
+                                    >
+                                      Ekle
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setSectionCallouts((prev) => prev.filter((_, i) => i !== idx))}
+                                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Yeni kutu ekleme */}
+                            <div className="space-y-2 pt-2 border-t border-border">
+                              <div className="grid grid-cols-3 gap-2">
                                 <select
-                                  value={calloutType}
-                                  onChange={(e) => setCalloutType(e.target.value as any)}
-                                  className="w-full h-9 rounded-md border border-input bg-card text-foreground px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring [&>option]:bg-white [&>option]:text-black dark:[&>option]:bg-gray-900 dark:[&>option]:text-white"
+                                  value={newCalloutType}
+                                  onChange={(e) => setNewCalloutType(e.target.value as "info" | "warn" | "note")}
+                                  className="h-9 rounded-md border border-input bg-card text-foreground px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring [&>option]:bg-white [&>option]:text-black dark:[&>option]:bg-gray-900 dark:[&>option]:text-white"
                                 >
                                   <option value="info">Bilgi</option>
                                   <option value="warn">Uyarı</option>
                                   <option value="note">Not</option>
                                 </select>
-                              </div>
-                              <div>
-                                <Label>Başlık</Label>
                                 <Input
-                                  value={calloutTitle}
-                                  onChange={(e) => setCalloutTitle(e.target.value)}
-                                  placeholder="Bilgi"
+                                  value={newCalloutTitle}
+                                  onChange={(e) => setNewCalloutTitle(e.target.value)}
+                                  placeholder="Başlık"
+                                  className="col-span-2"
                                 />
                               </div>
-                              <div>
-                                <Label>Metin</Label>
-                                <Textarea
-                                  value={calloutText}
-                                  onChange={(e) => setCalloutText(e.target.value)}
-                                  placeholder="Bilgi kutusu içeriği"
-                                />
-                              </div>
+                              <Textarea
+                                value={newCalloutText}
+                                onChange={(e) => setNewCalloutText(e.target.value)}
+                                placeholder="Kutu içeriği"
+                                className="min-h-16"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (newCalloutTitle.trim() && newCalloutText.trim()) {
+                                    setSectionCallouts((prev) => [
+                                      ...prev,
+                                      {
+                                        type: newCalloutType,
+                                        title: newCalloutTitle,
+                                        text: newCalloutText,
+                                      },
+                                    ]);
+                                    setNewCalloutType("info");
+                                    setNewCalloutTitle("");
+                                    setNewCalloutText("");
+                                  }
+                                }}
+                                className="w-full"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Kutu Ekle
+                              </Button>
                             </div>
-                          )}
+                          </div>
 
                           {/* Görsel Ekleme */}
                           <div className="space-y-3 p-4 border border-border rounded-lg">
@@ -1066,7 +1143,7 @@ export default function AdminPage() {
                                     <button
                                       onClick={() => {
                                         const textarea = document.getElementById(
-                                          "sectionContentAdd"
+                                          "sectionContentAdd",
                                         ) as HTMLTextAreaElement;
                                         if (textarea) {
                                           const cursorPos = textarea.selectionStart;
@@ -1103,7 +1180,7 @@ export default function AdminPage() {
                                       onClick={() => {
                                         const newNum = sectionImages.length + idx + 1;
                                         const textarea = document.getElementById(
-                                          "sectionContentAdd"
+                                          "sectionContentAdd",
                                         ) as HTMLTextAreaElement;
                                         if (textarea) {
                                           const cursorPos = textarea.selectionStart;
@@ -1162,6 +1239,10 @@ export default function AdminPage() {
                           setSectionImages([]);
                           setPendingImageFiles([]);
                           setEditingSectionPath([]);
+                          setSectionCallouts([]);
+                          setNewCalloutType("info");
+                          setNewCalloutTitle("");
+                          setNewCalloutText("");
                         }
                       }}
                     >
@@ -1186,52 +1267,123 @@ export default function AdminPage() {
                               id="sectionContentEdit"
                               value={sectionContent}
                               onChange={(e) => setSectionContent(e.target.value)}
-                              placeholder="Bölüm içeriğini buraya yazın... Resim eklemek için [resim:1] yazın"
+                              placeholder="Bölüm içeriğini buraya yazın... Resim için [resim:1], kutu için [kutu:1] yazın"
                               className="min-h-50"
                             />
                           </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id="editHasCallout"
-                              checked={hasCallout}
-                              onChange={(e) => setHasCallout(e.target.checked)}
-                              className="rounded"
-                            />
-                            <Label htmlFor="editHasCallout">Bilgi Kutusu Ekle</Label>
-                          </div>
-                          {hasCallout && (
-                            <div className="space-y-4 p-4 border border-border rounded-lg">
-                              <div>
-                                <Label>Tip</Label>
+                          {/* Bilgi Kutuları */}
+                          <div className="space-y-3 p-4 border border-border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <Label className="flex items-center gap-2">
+                                <Info className="h-4 w-4" />
+                                Bilgi Kutuları
+                              </Label>
+                            </div>
+
+                            {/* Mevcut kutular */}
+                            {sectionCallouts.length > 0 && (
+                              <div className="space-y-2">
+                                {sectionCallouts.map((callout, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                                    <span className="bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                                      {idx + 1}
+                                    </span>
+                                    <span
+                                      className={`text-xs px-2 py-0.5 rounded ${
+                                        callout.type === "info"
+                                          ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                                          : callout.type === "warn"
+                                            ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                                            : "bg-green-500/20 text-green-600 dark:text-green-400"
+                                      }`}
+                                    >
+                                      {callout.type === "info" ? "Bilgi" : callout.type === "warn" ? "Uyarı" : "Not"}
+                                    </span>
+                                    <span className="text-sm flex-1 truncate">{callout.title}</span>
+                                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">[kutu:{idx + 1}]</code>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const textarea = document.getElementById(
+                                          "sectionContentEdit",
+                                        ) as HTMLTextAreaElement;
+                                        if (textarea) {
+                                          const pos = textarea.selectionStart;
+                                          const text = sectionContent;
+                                          setSectionContent(text.slice(0, pos) + `[kutu:${idx + 1}]` + text.slice(pos));
+                                        }
+                                      }}
+                                      className="h-6 px-2 text-xs"
+                                    >
+                                      Ekle
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setSectionCallouts((prev) => prev.filter((_, i) => i !== idx))}
+                                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Yeni kutu ekleme */}
+                            <div className="space-y-2 pt-2 border-t border-border">
+                              <div className="grid grid-cols-3 gap-2">
                                 <select
-                                  value={calloutType}
-                                  onChange={(e) => setCalloutType(e.target.value as any)}
-                                  className="w-full h-9 rounded-md border border-input bg-card text-foreground px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring [&>option]:bg-white [&>option]:text-black dark:[&>option]:bg-gray-900 dark:[&>option]:text-white"
+                                  value={newCalloutType}
+                                  onChange={(e) => setNewCalloutType(e.target.value as "info" | "warn" | "note")}
+                                  className="h-9 rounded-md border border-input bg-card text-foreground px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring [&>option]:bg-white [&>option]:text-black dark:[&>option]:bg-gray-900 dark:[&>option]:text-white"
                                 >
                                   <option value="info">Bilgi</option>
                                   <option value="warn">Uyarı</option>
                                   <option value="note">Not</option>
                                 </select>
-                              </div>
-                              <div>
-                                <Label>Başlık</Label>
                                 <Input
-                                  value={calloutTitle}
-                                  onChange={(e) => setCalloutTitle(e.target.value)}
-                                  placeholder="Bilgi"
+                                  value={newCalloutTitle}
+                                  onChange={(e) => setNewCalloutTitle(e.target.value)}
+                                  placeholder="Başlık"
+                                  className="col-span-2"
                                 />
                               </div>
-                              <div>
-                                <Label>Metin</Label>
-                                <Textarea
-                                  value={calloutText}
-                                  onChange={(e) => setCalloutText(e.target.value)}
-                                  placeholder="Bilgi kutusu içeriği"
-                                />
-                              </div>
+                              <Textarea
+                                value={newCalloutText}
+                                onChange={(e) => setNewCalloutText(e.target.value)}
+                                placeholder="Kutu içeriği"
+                                className="min-h-16"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (newCalloutTitle.trim() && newCalloutText.trim()) {
+                                    setSectionCallouts((prev) => [
+                                      ...prev,
+                                      {
+                                        type: newCalloutType,
+                                        title: newCalloutTitle,
+                                        text: newCalloutText,
+                                      },
+                                    ]);
+                                    setNewCalloutType("info");
+                                    setNewCalloutTitle("");
+                                    setNewCalloutText("");
+                                  }
+                                }}
+                                className="w-full"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Kutu Ekle
+                              </Button>
                             </div>
-                          )}
+                          </div>
 
                           {/* Görsel Ekleme */}
                           <div className="space-y-3 p-4 border border-border rounded-lg">
@@ -1264,7 +1416,7 @@ export default function AdminPage() {
                                     <button
                                       onClick={() => {
                                         const textarea = document.getElementById(
-                                          "sectionContentEdit"
+                                          "sectionContentEdit",
                                         ) as HTMLTextAreaElement;
                                         if (textarea) {
                                           const cursorPos = textarea.selectionStart;
@@ -1301,7 +1453,7 @@ export default function AdminPage() {
                                       onClick={() => {
                                         const newNum = sectionImages.length + idx + 1;
                                         const textarea = document.getElementById(
-                                          "sectionContentEdit"
+                                          "sectionContentEdit",
                                         ) as HTMLTextAreaElement;
                                         if (textarea) {
                                           const cursorPos = textarea.selectionStart;

@@ -8,16 +8,18 @@ interface SectionImage {
   url: string;
 }
 
+interface SectionCallout {
+  type: "info" | "warn" | "note";
+  title: string;
+  text: string;
+}
+
 interface Section {
   _id?: string;
   title: string;
   content: string;
   images?: SectionImage[];
-  callout?: {
-    type: "info" | "warn" | "note";
-    title: string;
-    text: string;
-  };
+  callouts?: SectionCallout[];
   subsections?: Section[];
 }
 
@@ -130,23 +132,25 @@ export default function Home() {
   };
 
   // Render content with image markers
-  const renderContentWithImages = (content: string, images?: SectionImage[]) => {
-    if (!images || images.length === 0) {
+  const renderContentWithImages = (content: string, images?: SectionImage[], callouts?: SectionCallout[]) => {
+    // Her iki marker tipini de yakala: [resim:X] ve [kutu:X]
+    const parts = content.split(/(\[resim:\d+\]|\[kutu:\d+\])/g);
+
+    if (parts.length === 1 && !parts[0].match(/\[resim:\d+\]|\[kutu:\d+\]/)) {
+      // Sadece düz metin varsa
       return (
         <p className="whitespace-pre-line text-[14px] text-[#222] dark:text-[#e7e9ee] leading-[1.55]">{content}</p>
       );
     }
 
-    // Split content by [resim:X] markers
-    const parts = content.split(/(\[resim:\d+\])/g);
-
     return (
       <div className="text-[14px] text-[#222] dark:text-[#e7e9ee] leading-[1.55]">
         {parts.map((part, idx) => {
-          const match = part.match(/\[resim:(\d+)\]/);
-          if (match) {
-            const imageIndex = parseInt(match[1]) - 1;
-            const image = images[imageIndex];
+          // Resim marker'ı kontrolü
+          const imageMatch = part.match(/\[resim:(\d+)\]/);
+          if (imageMatch) {
+            const imageIndex = parseInt(imageMatch[1]) - 1;
+            const image = images?.[imageIndex];
             if (image) {
               return (
                 <img
@@ -160,6 +164,28 @@ export default function Home() {
             }
             return null;
           }
+
+          // Kutu/Callout marker'ı kontrolü
+          const calloutMatch = part.match(/\[kutu:(\d+)\]/);
+          if (calloutMatch) {
+            const calloutIndex = parseInt(calloutMatch[1]) - 1;
+            const callout = callouts?.[calloutIndex];
+            if (callout) {
+              return (
+                <div
+                  key={idx}
+                  className={`my-3 p-3 rounded-[10px] border border-[#d7d7d0] dark:border-[#272d3a] border-l-4 ${getCalloutStyle(
+                    callout.type,
+                  )}`}
+                >
+                  <div className="font-bold text-[11px] uppercase text-[#222] dark:text-[#e7e9ee]">{callout.title}</div>
+                  <div className="text-[13px] mt-0.5 text-[#666] dark:text-[#a7adbb]">{callout.text}</div>
+                </div>
+              );
+            }
+            return null;
+          }
+
           return part ? (
             <span key={idx} className="whitespace-pre-line">
               {part}
@@ -197,20 +223,7 @@ export default function Home() {
 
         {isOpen && (
           <div className="px-3.5 pb-3.5">
-            {renderContentWithImages(section.content, section.images)}
-
-            {section.callout && (
-              <div
-                className={`mt-3 p-3 rounded-[10px] border border-[#d7d7d0] dark:border-[#272d3a] border-l-4 ${getCalloutStyle(
-                  section.callout.type,
-                )}`}
-              >
-                <div className="font-bold text-[11px] uppercase text-[#222] dark:text-[#e7e9ee]">
-                  {section.callout.title}
-                </div>
-                <div className="text-[13px] mt-0.5 text-[#666] dark:text-[#a7adbb]">{section.callout.text}</div>
-              </div>
-            )}
+            {renderContentWithImages(section.content, section.images, section.callouts)}
 
             {section.subsections && section.subsections.length > 0 && (
               <div className="mt-2.5 space-y-2.5">
@@ -333,24 +346,7 @@ export default function Home() {
 
                       {isOpen && (
                         <div className="px-4.5 pb-4.5">
-                          <p className="whitespace-pre-line text-[#222] dark:text-[#e7e9ee] leading-[1.55]">
-                            {section.content}
-                          </p>
-
-                          {section.callout && (
-                            <div
-                              className={`mt-3.5 p-3.5 rounded-xl border border-[#d7d7d0] dark:border-[#272d3a] border-l-4 ${getCalloutStyle(
-                                section.callout.type,
-                              )}`}
-                            >
-                              <div className="font-bold text-[12px] uppercase text-[#222] dark:text-[#e7e9ee]">
-                                {section.callout.title}
-                              </div>
-                              <div className="text-[14px] mt-1 text-[#666] dark:text-[#a7adbb]">
-                                {section.callout.text}
-                              </div>
-                            </div>
-                          )}
+                          {renderContentWithImages(section.content, section.images, section.callouts)}
 
                           {section.subsections && section.subsections.length > 0 && (
                             <div className="mt-2.5 space-y-2.5">
