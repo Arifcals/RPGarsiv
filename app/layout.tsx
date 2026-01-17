@@ -24,14 +24,20 @@ export const viewport: Viewport = {
   ],
 };
 
+
+import type { Metadata } from "next";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "RPG Arşiv - Türkçe TRPG Sistem Çevirileri ve Rehberleri",
     template: "%s | RPG Arşiv",
   },
+  verification: {
+  google: "L7lrA2zgss7l9UwEPm8kit336yAMYgG8_VMc5R5PHSE",
+
+  },
   description:
-    "RPG Arşiv, yabancı dili zayıf TRPG oyuncuları için masa üstü rol yapma oyunu sistemlerinin yüksek doğruluklu Türkçe çevirilerini sunar. D&D, Call of Cthulhu, Pathfinder ve daha fazlası!",
+    "RPG Arşiv, yabancı dili zayıf TRPG oyuncuları için masaüstü rol yapma oyunu sistemlerinin yüksek doğruluklu Türkçe çevirilerini sunar. Call of Cthulhu, The End of The World ve daha fazlası!",
   keywords: [
     "TRPG",
     "masa üstü rol yapma oyunu",
@@ -69,7 +75,7 @@ export const metadata: Metadata = {
     siteName: "RPG Arşiv",
     title: "RPG Arşiv - Türkçe TRPG Sistem Çevirileri ve Rehberleri",
     description:
-      "Yabancı dili zayıf TRPG oyuncuları için masa üstü rol yapma oyunu sistemlerinin yüksek doğruluklu Türkçe çevirileri. D&D, Call of Cthulhu, Pathfinder ve daha fazlası!",
+      "Yabancı dili zayıf TRPG oyuncuları için masaüstü rol yapma oyunu sistemlerinin yüksek doğruluklu Türkçe çevirileri. Call of Cthulhu, The End of The World ve daha fazlası!",
     images: [
       {
         url: "/og-image.png",
@@ -83,7 +89,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RPG Arşiv - Türkçe TRPG Sistem Çevirileri",
     description:
-      "Masa üstü rol yapma oyunu sistemlerinin yüksek doğruluklu Türkçe çevirileri. D&D, Call of Cthulhu, Pathfinder ve daha fazlası!",
+      "Masaüstü rol yapma oyunu sistemlerinin yüksek doğruluklu Türkçe çevirileri. Call of Cthulhu, The End of The World ve daha fazlası!",
     images: ["/og-image.png"],
   },
   alternates: {
@@ -98,7 +104,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "RPG Arşiv",
-  description: "Türkçe TRPG sistem çevirileri ve rehberleri. Masa üstü rol yapma oyunları için kapsamlı Türkçe kaynak.",
+  description: "Türkçe TRPG sistem çevirileri ve rehberleri. Masaüstü rol yapma oyunları için kapsamlı Türkçe kaynak.",
   url: siteUrl,
   inLanguage: "tr-TR",
   potentialAction: {
