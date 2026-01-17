@@ -318,7 +318,7 @@ export default function Home() {
           {selectedGame ? (
             <>
               <header className="mb-4.5 flex flex-col items-center text-center">
-                <h1 className="text-[34px] font-bold m-0 mb-2.5 text-[#222] dark:text-[#e7e9ee]">
+                <h1 className="text-[34px] font-bold m-0 mb-2.5 text-[#222] dark:text-[#e7e9ee] font-(family-name:--font-inter)">
                   {selectedGame.name}
                 </h1>
               </header>
@@ -374,7 +374,7 @@ export default function Home() {
 
       {/* Buy Me a Coffee Button */}
       <a
-        href="https://www.buymeacoffee.com"
+        href="https://buymeacoffee.com/rpgarsiv"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-4 left-4 z-50 transition-transform hover:scale-105"
