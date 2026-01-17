@@ -25,16 +25,11 @@ export const viewport: Viewport = {
 };
 
 
-import type { Metadata } from "next";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "RPG Arşiv - Türkçe TRPG Sistem Çevirileri ve Rehberleri",
     template: "%s | RPG Arşiv",
-  },
-  verification: {
-  google: "L7lrA2zgss7l9UwEPm8kit336yAMYgG8_VMc5R5PHSE",
-
   },
   description:
     "RPG Arşiv, yabancı dili zayıf TRPG oyuncuları için masaüstü rol yapma oyunu sistemlerinin yüksek doğruluklu Türkçe çevirilerini sunar. Call of Cthulhu, The End of The World ve daha fazlası!",
