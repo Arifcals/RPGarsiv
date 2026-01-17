@@ -100,6 +100,12 @@ export default function AdminPage() {
   const [newCalloutTitle, setNewCalloutTitle] = useState("");
   const [newCalloutText, setNewCalloutText] = useState("");
 
+  // Bilgi kutusu düzenleme
+  const [editingCalloutIndex, setEditingCalloutIndex] = useState<number | null>(null);
+  const [editCalloutType, setEditCalloutType] = useState<"info" | "warn" | "note">("info");
+  const [editCalloutTitle, setEditCalloutTitle] = useState("");
+  const [editCalloutText, setEditCalloutText] = useState("");
+
   useEffect(() => {
     checkAuth();
     const theme = localStorage.getItem("theme");
@@ -394,6 +400,10 @@ export default function AdminPage() {
         setSectionCallouts([]);
         setNewCalloutTitle("");
         setNewCalloutText("");
+        setEditingCalloutIndex(null);
+        setEditCalloutType("info");
+        setEditCalloutTitle("");
+        setEditCalloutText("");
       }
     } catch (error) {
       console.error("Bölüm eklenemedi:", error);
@@ -460,6 +470,10 @@ export default function AdminPage() {
         setSectionCallouts([]);
         setNewCalloutTitle("");
         setNewCalloutText("");
+        setEditingCalloutIndex(null);
+        setEditCalloutType("info");
+        setEditCalloutTitle("");
+        setEditCalloutText("");
       }
     } catch (error) {
       console.error("Bölüm düzenlenemedi:", error);
@@ -550,6 +564,10 @@ export default function AdminPage() {
                   setSectionCallouts([]);
                   setNewCalloutTitle("");
                   setNewCalloutText("");
+                  setEditingCalloutIndex(null);
+                  setEditCalloutType("info");
+                  setEditCalloutTitle("");
+                  setEditCalloutText("");
                   setSectionOpen(true);
                 }}
               >
@@ -567,6 +585,10 @@ export default function AdminPage() {
                   setSectionCallouts(section.callouts || []);
                   setNewCalloutTitle("");
                   setNewCalloutText("");
+                  setEditingCalloutIndex(null);
+                  setEditCalloutType("info");
+                  setEditCalloutTitle("");
+                  setEditCalloutText("");
                   setEditingSectionPath(path);
                   setEditSectionOpen(true);
                 }}
@@ -950,6 +972,10 @@ export default function AdminPage() {
                           setNewCalloutType("info");
                           setNewCalloutTitle("");
                           setNewCalloutText("");
+                          setEditingCalloutIndex(null);
+                          setEditCalloutType("info");
+                          setEditCalloutTitle("");
+                          setEditCalloutText("");
                         }
                       }}
                     >
@@ -964,6 +990,10 @@ export default function AdminPage() {
                             setNewCalloutType("info");
                             setNewCalloutTitle("");
                             setNewCalloutText("");
+                            setEditingCalloutIndex(null);
+                            setEditCalloutType("info");
+                            setEditCalloutTitle("");
+                            setEditCalloutText("");
                             setSectionImages([]);
                             setPendingImageFiles([]);
                           }}
@@ -1011,50 +1041,146 @@ export default function AdminPage() {
                             {sectionCallouts.length > 0 && (
                               <div className="space-y-2">
                                 {sectionCallouts.map((callout, idx) => (
-                                  <div key={idx} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                                    <span className="bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                                      {idx + 1}
-                                    </span>
-                                    <span
-                                      className={`text-xs px-2 py-0.5 rounded ${
-                                        callout.type === "info"
-                                          ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
-                                          : callout.type === "warn"
-                                            ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
-                                            : "bg-green-500/20 text-green-600 dark:text-green-400"
-                                      }`}
-                                    >
-                                      {callout.type === "info" ? "Bilgi" : callout.type === "warn" ? "Uyarı" : "Not"}
-                                    </span>
-                                    <span className="text-sm flex-1 truncate">{callout.title}</span>
-                                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">[kutu:{idx + 1}]</code>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        const textarea = document.getElementById(
-                                          "sectionContentAdd",
-                                        ) as HTMLTextAreaElement;
-                                        if (textarea) {
-                                          const pos = textarea.selectionStart;
-                                          const text = sectionContent;
-                                          setSectionContent(text.slice(0, pos) + `[kutu:${idx + 1}]` + text.slice(pos));
-                                        }
-                                      }}
-                                      className="h-6 px-2 text-xs"
-                                    >
-                                      Ekle
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setSectionCallouts((prev) => prev.filter((_, i) => i !== idx))}
-                                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
+                                  <div key={idx}>
+                                    {editingCalloutIndex === idx ? (
+                                      /* Düzenleme modu */
+                                      <div className="space-y-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <select
+                                            value={editCalloutType}
+                                            onChange={(e) =>
+                                              setEditCalloutType(e.target.value as "info" | "warn" | "note")
+                                            }
+                                            className="h-9 rounded-md border border-input bg-card text-foreground px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring [&>option]:bg-white [&>option]:text-black dark:[&>option]:bg-gray-900 dark:[&>option]:text-white"
+                                          >
+                                            <option value="info">Bilgi</option>
+                                            <option value="warn">Uyarı</option>
+                                            <option value="note">Not</option>
+                                          </select>
+                                          <Input
+                                            value={editCalloutTitle}
+                                            onChange={(e) => setEditCalloutTitle(e.target.value)}
+                                            placeholder="Başlık"
+                                            className="col-span-2"
+                                          />
+                                        </div>
+                                        <Textarea
+                                          value={editCalloutText}
+                                          onChange={(e) => setEditCalloutText(e.target.value)}
+                                          placeholder="Kutu içeriği"
+                                          className="min-h-16"
+                                        />
+                                        <div className="flex gap-2">
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={() => {
+                                              if (editCalloutTitle.trim() && editCalloutText.trim()) {
+                                                setSectionCallouts((prev) =>
+                                                  prev.map((c, i) =>
+                                                    i === idx
+                                                      ? {
+                                                          type: editCalloutType,
+                                                          title: editCalloutTitle,
+                                                          text: editCalloutText,
+                                                        }
+                                                      : c,
+                                                  ),
+                                                );
+                                                setEditingCalloutIndex(null);
+                                                setEditCalloutType("info");
+                                                setEditCalloutTitle("");
+                                                setEditCalloutText("");
+                                              }
+                                            }}
+                                            className="flex-1"
+                                          >
+                                            Kaydet
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              setEditingCalloutIndex(null);
+                                              setEditCalloutType("info");
+                                              setEditCalloutTitle("");
+                                              setEditCalloutText("");
+                                            }}
+                                          >
+                                            İptal
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      /* Görüntüleme modu */
+                                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                                        <span className="bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                                          {idx + 1}
+                                        </span>
+                                        <span
+                                          className={`text-xs px-2 py-0.5 rounded ${
+                                            callout.type === "info"
+                                              ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                                              : callout.type === "warn"
+                                                ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                                                : "bg-green-500/20 text-green-600 dark:text-green-400"
+                                          }`}
+                                        >
+                                          {callout.type === "info"
+                                            ? "Bilgi"
+                                            : callout.type === "warn"
+                                              ? "Uyarı"
+                                              : "Not"}
+                                        </span>
+                                        <span className="text-sm flex-1 truncate">{callout.title}</span>
+                                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">[kutu:{idx + 1}]</code>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const textarea = document.getElementById(
+                                              "sectionContentAdd",
+                                            ) as HTMLTextAreaElement;
+                                            if (textarea) {
+                                              const pos = textarea.selectionStart;
+                                              const text = sectionContent;
+                                              setSectionContent(
+                                                text.slice(0, pos) + `[kutu:${idx + 1}]` + text.slice(pos),
+                                              );
+                                            }
+                                          }}
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          Ekle
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            setEditingCalloutIndex(idx);
+                                            setEditCalloutType(callout.type);
+                                            setEditCalloutTitle(callout.title);
+                                            setEditCalloutText(callout.text);
+                                          }}
+                                          className="h-6 w-6 p-0"
+                                          title="Düzenle"
+                                        >
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setSectionCallouts((prev) => prev.filter((_, i) => i !== idx))}
+                                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -1243,6 +1369,10 @@ export default function AdminPage() {
                           setNewCalloutType("info");
                           setNewCalloutTitle("");
                           setNewCalloutText("");
+                          setEditingCalloutIndex(null);
+                          setEditCalloutType("info");
+                          setEditCalloutTitle("");
+                          setEditCalloutText("");
                         }
                       }}
                     >
@@ -1284,50 +1414,146 @@ export default function AdminPage() {
                             {sectionCallouts.length > 0 && (
                               <div className="space-y-2">
                                 {sectionCallouts.map((callout, idx) => (
-                                  <div key={idx} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                                    <span className="bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                                      {idx + 1}
-                                    </span>
-                                    <span
-                                      className={`text-xs px-2 py-0.5 rounded ${
-                                        callout.type === "info"
-                                          ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
-                                          : callout.type === "warn"
-                                            ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
-                                            : "bg-green-500/20 text-green-600 dark:text-green-400"
-                                      }`}
-                                    >
-                                      {callout.type === "info" ? "Bilgi" : callout.type === "warn" ? "Uyarı" : "Not"}
-                                    </span>
-                                    <span className="text-sm flex-1 truncate">{callout.title}</span>
-                                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">[kutu:{idx + 1}]</code>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        const textarea = document.getElementById(
-                                          "sectionContentEdit",
-                                        ) as HTMLTextAreaElement;
-                                        if (textarea) {
-                                          const pos = textarea.selectionStart;
-                                          const text = sectionContent;
-                                          setSectionContent(text.slice(0, pos) + `[kutu:${idx + 1}]` + text.slice(pos));
-                                        }
-                                      }}
-                                      className="h-6 px-2 text-xs"
-                                    >
-                                      Ekle
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setSectionCallouts((prev) => prev.filter((_, i) => i !== idx))}
-                                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
+                                  <div key={idx}>
+                                    {editingCalloutIndex === idx ? (
+                                      /* Düzenleme modu */
+                                      <div className="space-y-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <select
+                                            value={editCalloutType}
+                                            onChange={(e) =>
+                                              setEditCalloutType(e.target.value as "info" | "warn" | "note")
+                                            }
+                                            className="h-9 rounded-md border border-input bg-card text-foreground px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring [&>option]:bg-white [&>option]:text-black dark:[&>option]:bg-gray-900 dark:[&>option]:text-white"
+                                          >
+                                            <option value="info">Bilgi</option>
+                                            <option value="warn">Uyarı</option>
+                                            <option value="note">Not</option>
+                                          </select>
+                                          <Input
+                                            value={editCalloutTitle}
+                                            onChange={(e) => setEditCalloutTitle(e.target.value)}
+                                            placeholder="Başlık"
+                                            className="col-span-2"
+                                          />
+                                        </div>
+                                        <Textarea
+                                          value={editCalloutText}
+                                          onChange={(e) => setEditCalloutText(e.target.value)}
+                                          placeholder="Kutu içeriği"
+                                          className="min-h-16"
+                                        />
+                                        <div className="flex gap-2">
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={() => {
+                                              if (editCalloutTitle.trim() && editCalloutText.trim()) {
+                                                setSectionCallouts((prev) =>
+                                                  prev.map((c, i) =>
+                                                    i === idx
+                                                      ? {
+                                                          type: editCalloutType,
+                                                          title: editCalloutTitle,
+                                                          text: editCalloutText,
+                                                        }
+                                                      : c,
+                                                  ),
+                                                );
+                                                setEditingCalloutIndex(null);
+                                                setEditCalloutType("info");
+                                                setEditCalloutTitle("");
+                                                setEditCalloutText("");
+                                              }
+                                            }}
+                                            className="flex-1 border"
+                                          >
+                                            Kaydet
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              setEditingCalloutIndex(null);
+                                              setEditCalloutType("info");
+                                              setEditCalloutTitle("");
+                                              setEditCalloutText("");
+                                            }}
+                                          >
+                                            İptal
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      /* Görüntüleme modu */
+                                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                                        <span className="bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                                          {idx + 1}
+                                        </span>
+                                        <span
+                                          className={`text-xs px-2 py-0.5 rounded ${
+                                            callout.type === "info"
+                                              ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                                              : callout.type === "warn"
+                                                ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                                                : "bg-green-500/20 text-green-600 dark:text-green-400"
+                                          }`}
+                                        >
+                                          {callout.type === "info"
+                                            ? "Bilgi"
+                                            : callout.type === "warn"
+                                              ? "Uyarı"
+                                              : "Not"}
+                                        </span>
+                                        <span className="text-sm flex-1 truncate">{callout.title}</span>
+                                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">[kutu:{idx + 1}]</code>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const textarea = document.getElementById(
+                                              "sectionContentEdit",
+                                            ) as HTMLTextAreaElement;
+                                            if (textarea) {
+                                              const pos = textarea.selectionStart;
+                                              const text = sectionContent;
+                                              setSectionContent(
+                                                text.slice(0, pos) + `[kutu:${idx + 1}]` + text.slice(pos),
+                                              );
+                                            }
+                                          }}
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          Ekle
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            setEditingCalloutIndex(idx);
+                                            setEditCalloutType(callout.type);
+                                            setEditCalloutTitle(callout.title);
+                                            setEditCalloutText(callout.text);
+                                          }}
+                                          className="h-6 w-6 p-0"
+                                          title="Düzenle"
+                                        >
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setSectionCallouts((prev) => prev.filter((_, i) => i !== idx))}
+                                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
