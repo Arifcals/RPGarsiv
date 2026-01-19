@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "D&D Türkçe",
     "Dungeons and Dragons",
     "Call of Cthulhu",
-    "Pathfinder",
+    "The End of The Worlds RPG",
     "rol yapma oyunu",
     "TRPG rehber",
     "RPG kuralları",
