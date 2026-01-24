@@ -1,5 +1,8 @@
 "use client";
 
+import { DndContext } from "@dnd-kit/core";
+import { SortableContext, useSortable, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState, JSX } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -51,6 +54,33 @@ interface Game {
   sections: Section[];
   clickCount: number;
 }
+
+
+function SortableItem({
+  id,
+  children,
+}: {
+  id: string;
+  children: (dragHandleProps: any) => React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      {children(listeners)}
+    </div>
+  );
+}
+
+
+
+
 
 export default function AdminPage() {
   const router = useRouter();
@@ -106,6 +136,27 @@ export default function AdminPage() {
   const [editCalloutTitle, setEditCalloutTitle] = useState("");
   const [editCalloutText, setEditCalloutText] = useState("");
 
+
+
+  const saveSectionsOrder = async (sections: Section[]) => {
+    if (!selectedGame) return;
+
+    try {
+      await fetch(`/api/games/${selectedGame._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...selectedGame,
+          sections,
+        }),
+      });
+    } catch (error) {
+      console.error("Sıralama kaydedilemedi:", error);
+    }
+  };
+
+
+  
   useEffect(() => {
     checkAuth();
     const theme = localStorage.getItem("theme");
@@ -509,7 +560,12 @@ export default function AdminPage() {
   };
 
   // Recursive section renderer
-  const renderSection = (section: Section, path: number[], depth: number): JSX.Element => {
+const renderSection = (
+  section: Section,
+  path: number[],
+  depth: number,
+  dragHandleProps?: any
+): JSX.Element => {
     const sectionKey = path.join("-");
     const isExpanded = expandedSections.has(sectionKey);
     const indentStyle = depth > 0 ? { marginLeft: `${depth * 12}px` } : {};
@@ -517,6 +573,7 @@ export default function AdminPage() {
     return (
       <div
         key={sectionKey}
+        data-path={sectionKey}
         className={`border border-border rounded-lg ${depth > 0 ? "bg-secondary/10" : ""}`}
         style={indentStyle}
       >
@@ -631,15 +688,32 @@ export default function AdminPage() {
               </div>
             )}
             {section.subsections && section.subsections.length > 0 && (
-              <div className="mt-3 space-y-2">
-                <div className="text-xs font-semibold text-muted-foreground">
-                  Alt Bölümler ({section.subsections.length}):
-                </div>
-                {section.subsections.map((subsection, subIdx) =>
-                  renderSection(subsection, [...path, subIdx], depth + 1),
-                )}
-              </div>
-            )}
+  <SortableContext
+    items={section.subsections.map((_, i) =>
+      [...path, i].join("-")
+    )}
+  >
+    <div className="mt-3 space-y-2">
+      {section.subsections.map((subsection, subIdx) => {
+        const subPath = [...path, subIdx];
+
+        return (
+          <SortableItem key={subPath.join("-")} id={subPath.join("-")}>
+            {(dragHandleProps) =>
+              renderSection(
+                subsection,
+                subPath,
+                depth + 1,
+                dragHandleProps
+              )
+            }
+          </SortableItem>
+        );
+      })}
+    </div>
+  </SortableContext>
+)}
+
           </div>
         )}
       </div>
@@ -1732,15 +1806,53 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-4 mt-6">
-                  <h3 className="font-bold text-lg">Bölümler</h3>
-                  {selectedGame.sections.length > 0 ? (
-                    <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
-                      {selectedGame.sections.map((section, idx) => renderSection(section, [idx], 0))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-8">Henüz bölüm eklenmemiş.</p>
-                  )}
-                </div>
+  <h3 className="font-bold text-lg">Bölümler</h3>
+
+{selectedGame.sections.length > 0 ? (
+  <DndContext
+    onDragEnd={(event) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldIndex = Number(active.id);
+      const newIndex = Number(over.id);
+
+      const newSections = arrayMove(
+        selectedGame.sections,
+        oldIndex,
+        newIndex
+      );
+
+      setSelectedGame({
+        ...selectedGame,
+        sections: newSections,
+      });
+
+      saveSectionsOrder(newSections);
+    }}
+  >
+    <SortableContext
+      items={selectedGame.sections.map((_, i) => i.toString())}
+    >
+      <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
+        {selectedGame.sections.map((section, idx) => (
+          <SortableItem key={idx} id={idx.toString()}>
+            {(dragHandleProps) =>
+              renderSection(section, [idx], 0, dragHandleProps)
+            }
+          </SortableItem>
+        ))}
+      </div>
+    </SortableContext>
+  </DndContext>
+) : (
+  <p className="text-center text-muted-foreground py-8">
+    Henüz bölüm eklenmemiş.
+  </p>
+)}
+</div>
+
+
               </div>
             ) : (
               <div className="bg-card border border-border rounded-2xl shadow-lg p-12 text-center">

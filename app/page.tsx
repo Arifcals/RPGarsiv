@@ -64,33 +64,57 @@ export default function Home() {
   }, []);
 
   const fetchGames = async () => {
-    try {
-      const res = await fetch("/api/games");
-      const data = await res.json();
-      setGames(data);
-      if (data.length > 0) {
-        setSelectedGame(data[0]);
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error("Oyunlar yüklenirken hata:", error);
-      setLoading(false);
+  try {
+    const res = await fetch("/api/games");
+    const data = await res.json();
+
+    console.log("HOME GAMES DATA:", data);
+
+    if (!res.ok || !Array.isArray(data)) {
+      console.error("API array dönmedi:", data);
+      setGames([]);
+      setSelectedGame(null);
+      return;
     }
-  };
+
+    setGames(data);
+
+    if (data.length > 0) {
+      setSelectedGame(data[0]);
+    } else {
+      setSelectedGame(null);
+    }
+  } catch (error) {
+    console.error("Oyunlar yüklenirken hata:", error);
+    setGames([]);
+    setSelectedGame(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleGameClick = async (game: Game) => {
-    setSelectedGame(game);
-    setOpenSections(new Set(["section-0"]));
+  setSelectedGame(game);
+  setOpenSections(new Set(["section-0"]));
 
-    try {
-      await fetch(`/api/games/${game._id}/click`, { method: "POST" });
-      const res = await fetch("/api/games");
-      const data = await res.json();
+  try {
+    await fetch(`/api/games/${game._id}/click`, { method: "POST" });
+
+    const res = await fetch("/api/games");
+    const data = await res.json();
+
+    if (Array.isArray(data)) {
       setGames(data);
-    } catch (error) {
-      console.error("Tıklama kaydedilemedi:", error);
+    } else {
+      console.error("Click sonrası games array değil:", data);
+      setGames([]);
     }
-  };
+  } catch (error) {
+    console.error("Tıklama kaydedilemedi:", error);
+  }
+};
+
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
