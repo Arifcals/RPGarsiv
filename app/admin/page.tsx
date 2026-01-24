@@ -114,6 +114,7 @@ export default function AdminPage() {
   const [sectionContent, setSectionContent] = useState("");
   const [parentSectionPath, setParentSectionPath] = useState<number[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [isDragging, setIsDragging] = useState(false);
 
   // Bölüm düzenleme
   const [editSectionOpen, setEditSectionOpen] = useState(false);
@@ -580,33 +581,41 @@ const renderSection = (
         <div className="p-3">
           <div className="flex items-start justify-between">
             <button
-              onClick={() => {
-                setExpandedSections((prev) => {
-                  const newSet = new Set(prev);
-                  if (newSet.has(sectionKey)) {
-                    newSet.delete(sectionKey);
-                  } else {
-                    newSet.add(sectionKey);
-                  }
-                  return newSet;
-                });
-              }}
-              className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4 shrink-0" />
-              ) : (
-                <ChevronRight className="h-4 w-4 shrink-0" />
-              )}
-              <div className="flex-1">
-                <h4 className={`font-medium ${depth > 0 ? "text-sm" : ""}`}>{section.title}</h4>
-                {!isExpanded && (
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                    {section.content.substring(0, 100)}...
-                  </p>
-                )}
-              </div>
-            </button>
+  {...dragHandleProps}
+onClick={() => {
+  if (isDragging) return; // 👈 DRAG SIRASINDA TIKLAMA YOK
+
+  setExpandedSections((prev) => {
+    const newSet = new Set(prev);
+    if (newSet.has(sectionKey)) {
+      newSet.delete(sectionKey);
+    } else {
+      newSet.add(sectionKey);
+    }
+    return newSet;
+  });
+}}
+  className="flex items-center gap-2 flex-1 text-left cursor-grab active:cursor-grabbing hover:opacity-80 transition-opacity"
+>
+  {isExpanded ? (
+    <ChevronDown className="h-4 w-4 shrink-0" />
+  ) : (
+    <ChevronRight className="h-4 w-4 shrink-0" />
+  )}
+
+  <div className="flex-1">
+    <h4 className={`font-medium ${depth > 0 ? "text-sm" : ""}`}>
+      {section.title}
+    </h4>
+
+    {!isExpanded && (
+      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+        {section.content.substring(0, 100)}...
+      </p>
+    )}
+  </div>
+</button>
+
             <div className="flex gap-1 ml-2">
               <Button
                 size="sm"
@@ -1809,39 +1818,67 @@ const renderSection = (
   <h3 className="font-bold text-lg">Bölümler</h3>
 
 {selectedGame.sections.length > 0 ? (
-  <DndContext
-    onDragEnd={(event) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
+<DndContext
+  onDragStart={() => {
+    setIsDragging(true);
+  }}
+  onDragEnd={(event) => {
+    setIsDragging(false);
 
-      const oldIndex = Number(active.id);
-      const newIndex = Number(over.id);
+    const { active, over } = event;
+    if (!over) return;
 
-      const newSections = arrayMove(
-        selectedGame.sections,
-        oldIndex,
-        newIndex
-      );
+    const fromPath = active.id.toString().split("-").map(Number);
+    const toPath = over.id.toString().split("-").map(Number);
 
-      setSelectedGame({
-        ...selectedGame,
-        sections: newSections,
-      });
+    if (fromPath.length !== toPath.length) return;
+    if (fromPath.slice(0, -1).join() !== toPath.slice(0, -1).join()) return;
 
-      saveSectionsOrder(newSections);
-    }}
-  >
+    const parentPath = fromPath.slice(0, -1);
+    const fromIndex = fromPath[fromPath.length - 1];
+    const toIndex = toPath[toPath.length - 1];
+
+    const reorder = (sections: Section[], path: number[]): Section[] => {
+      if (path.length === 0) {
+        return arrayMove(sections, fromIndex, toIndex);
+      }
+
+      const copy = [...sections];
+      const idx = path[0];
+      copy[idx] = {
+        ...copy[idx],
+        subsections: reorder(copy[idx].subsections || [], path.slice(1)),
+      };
+      return copy;
+    };
+
+    const newSections = reorder(selectedGame.sections, parentPath);
+
+    setSelectedGame({
+      ...selectedGame,
+      sections: newSections,
+    });
+
+    saveSectionsOrder(newSections);
+  }}
+>
+
+  
     <SortableContext
       items={selectedGame.sections.map((_, i) => i.toString())}
     >
       <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
-        {selectedGame.sections.map((section, idx) => (
-          <SortableItem key={idx} id={idx.toString()}>
-            {(dragHandleProps) =>
-              renderSection(section, [idx], 0, dragHandleProps)
-            }
-          </SortableItem>
-        ))}
+{selectedGame.sections.map((section, idx) => {
+  const path = [idx];
+
+  return (
+    <SortableItem key={path.join("-")} id={path.join("-")}>
+      {(dragHandleProps) =>
+        renderSection(section, path, 0, dragHandleProps)
+      }
+    </SortableItem>
+  );
+})}
       </div>
     </SortableContext>
   </DndContext>
