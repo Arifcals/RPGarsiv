@@ -1957,23 +1957,23 @@ const visibleSections: Section[] = filterSections(
 
   
     <SortableContext
-      items={selectedGame.sections.map((_, i) => i.toString())}
-    >
-      <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
-{visibleSections.map((section: Section, idx: number) => {
-  const path = [idx];
+  items={visibleSections.map((_, i) => i.toString())}
+>
+  <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
+    {visibleSections.map((section: Section, idx: number) => {
+      const path = [idx];
 
-  return (
-    <SortableItem key={path.join("-")} id={path.join("-")}>
-      {(dragHandleProps) =>
-        renderSection(section, path, 0, dragHandleProps)
-      }
-    </SortableItem>
-  );
-})}
+      return (
+        <SortableItem key={path.join("-")} id={path.join("-")}>
+          {(dragHandleProps) =>
+            renderSection(section, path, 0, dragHandleProps)
+          }
+        </SortableItem>
+      );
+    })}
+  </div>
+</SortableContext>
 
-      </div>
-    </SortableContext>
   </DndContext>
 ) : (
   <p className="text-center text-muted-foreground py-8">
