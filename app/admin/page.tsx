@@ -115,6 +115,7 @@ export default function AdminPage() {
   const [parentSectionPath, setParentSectionPath] = useState<number[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Bölüm düzenleme
   const [editSectionOpen, setEditSectionOpen] = useState(false);
@@ -138,6 +139,9 @@ export default function AdminPage() {
   const [editCalloutText, setEditCalloutText] = useState("");
 
 
+
+
+  
 
   const saveSectionsOrder = async (sections: Section[]) => {
     if (!selectedGame) return;
@@ -560,6 +564,45 @@ export default function AdminPage() {
     }
   };
 
+
+const filterSections = (sections: Section[], query: string): Section[] => {
+  if (!query.trim()) return sections;
+
+  const q = query.toLowerCase();
+
+  return sections
+    .map((section) => {
+      const titleMatch = section.title.toLowerCase().includes(q);
+      const contentMatch = section.content.toLowerCase().includes(q);
+
+      const filteredSubsections = section.subsections
+        ? filterSections(section.subsections, query)
+        : [];
+
+      if (titleMatch || contentMatch || filteredSubsections.length > 0) {
+        return {
+          ...section,
+          subsections: filteredSubsections,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean) as Section[];
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Recursive section renderer
 const renderSection = (
   section: Section,
@@ -741,6 +784,12 @@ const renderSection = (
     );
   }
 
+const visibleSections: Section[] = filterSections(
+  selectedGame?.sections || [],
+  searchQuery
+);
+
+  
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-400 mx-auto">
@@ -754,24 +803,25 @@ const renderSection = (
   {/* 🔍 ARAMA */}
 {/* 🔍 ARAMA */}
 <div className="relative w-56 mr-2">
-  <input
-    type="text"
-    placeholder="Ara..."
-    className="
-      w-full h-9
-      rounded-full
-      bg-card
-      border border-border
-      pl-9 pr-3
-      text-sm
-      text-foreground
-      placeholder:text-muted-foreground
-      focus:outline-none
-      focus:ring-2 focus:ring-primary/40
-      transition
-    "
-  />
-  <svg
+<input
+  type="text"
+  placeholder="Ara..."
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  className="
+    w-full h-9
+    rounded-full
+    bg-card
+    border border-border
+    pl-9 pr-3
+    text-sm
+    text-foreground
+    placeholder:text-muted-foreground
+    focus:outline-none
+    focus:ring-2 focus:ring-primary/40
+    transition
+  "
+/>  <svg
     className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -1910,7 +1960,7 @@ const renderSection = (
       items={selectedGame.sections.map((_, i) => i.toString())}
     >
       <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
-{selectedGame.sections.map((section, idx) => {
+{visibleSections.map((section: Section, idx: number) => {
   const path = [idx];
 
   return (
@@ -1921,6 +1971,7 @@ const renderSection = (
     </SortableItem>
   );
 })}
+
       </div>
     </SortableContext>
   </DndContext>
