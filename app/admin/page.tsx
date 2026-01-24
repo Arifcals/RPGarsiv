@@ -621,20 +621,6 @@ const renderSection = (
 
   {/* Sağdaki aksiyon butonları */}
   <div className="flex gap-1 ml-2">
-    <Button size="sm" variant="outline" title="Alt bölüm ekle">+</Button>
-    <Button size="sm" variant="outline" title="Düzenle">✏️</Button>
-    <Button size="sm" variant="ghost" title="Sil">🗑</Button>
-
-
-
-
-
-
-
-
-
-
-            
               <Button
                 size="sm"
                 variant="outline"
