@@ -318,7 +318,7 @@ export default function Home() {
           {selectedGame ? (
             <>
               <header className="mb-4.5 flex flex-col items-center text-center">
-                <h1 className="text-[34px] font-bold m-0 mb-2.5 text-[#222] dark:text-[#e7e9ee]">
+                <h1 className="text-[34px] font-bold m-0 mb-2.5 text-[#222] dark:text-[#e7e9ee] font-(family-name:--font-inter)">
                   {selectedGame.name}
                 </h1>
               </header>
@@ -362,9 +362,7 @@ export default function Home() {
                 })}
               </div>
 
-              <footer className="mt-2 text-[13px] text-center text-[#666] dark:text-[#a7adbb]">
-                Alt bilgi • iletişim / kaynak / lisans notu
-              </footer>
+              <footer className="mt-2 text-[13px] text-center text-[#666] dark:text-[#a7adbb]">{/*  */}</footer>
             </>
           ) : (
             <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] p-12 text-center">
@@ -373,6 +371,24 @@ export default function Home() {
           )}
         </main>
       </div>
+
+      {/* Buy Me a Coffee Button */}
+      <a
+        href="https://buymeacoffee.com/rpgarsiv"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-4 left-4 z-50 transition-transform hover:scale-105"
+      >
+        <img
+          src={isDark ? "/buy_me_a_coffee_dark.png" : "/buy_me_a_coffee_light.png"}
+          alt="Buy Me a Coffee"
+          className="h-10 w-auto"
+          onError={(e) => {
+            // Eğer light.png yoksa dark.png kullan
+            e.currentTarget.src = "/buy_me_a_coffee_dark.png";
+          }}
+        />
+      </a>
     </div>
   );
 }
