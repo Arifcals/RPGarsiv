@@ -579,42 +579,62 @@ const renderSection = (
         style={indentStyle}
       >
         <div className="p-3">
-          <div className="flex items-start justify-between">
-            <button
-  onClick={() => {
-    setExpandedSections((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionKey)) {
-        newSet.delete(sectionKey);
-      } else {
-        newSet.add(sectionKey);
-      }
-      return newSet;
-    });
-  }}
-  className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
->
-  {isExpanded ? (
-    <ChevronDown className="h-4 w-4 shrink-0" />
-  ) : (
-    <ChevronRight className="h-4 w-4 shrink-0" />
+<div className="flex items-start justify-between">
+  {/* Sol taraf: Aç / kapa */}
+  <button
+    onClick={() => {
+      setExpandedSections((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(sectionKey)) {
+          newSet.delete(sectionKey);
+        } else {
+          newSet.add(sectionKey);
+        }
+        return newSet;
+      });
+    }}
+    className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
+  >
+    {isExpanded ? (
+      <ChevronDown className="h-4 w-4 shrink-0" />
+    ) : (
+      <ChevronRight className="h-4 w-4 shrink-0" />
+    )}
+
+    <div className="flex-1">
+      <h4 className={`font-medium ${depth > 0 ? "text-sm" : ""}`}>
+        {section.title}
+      </h4>
+    </div>
+  </button>
+
+  {/* ☰ DRAG HANDLE — BUTTON’UN DIŞINDA AMA AYNI SATIRDA */}
+  {dragHandleProps && (
+    <div
+      {...dragHandleProps}
+      className="cursor-grab active:cursor-grabbing px-2 py-1 text-muted-foreground hover:text-foreground select-none"
+      title="Sürükle"
+    >
+      ☰
+    </div>
   )}
 
-  <div className="flex-1">
-    <h4 className={`font-medium ${depth > 0 ? "text-sm" : ""}`}>
-      {section.title}
-    </h4>
-
-    {!isExpanded && (
-      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-        {section.content.substring(0, 100)}...
-      </p>
-    )}
-  </div>
-</button>
+  {/* Sağdaki aksiyon butonları */}
+  <div className="flex gap-1 ml-2">
+    <Button size="sm" variant="outline" title="Alt bölüm ekle">+</Button>
+    <Button size="sm" variant="outline" title="Düzenle">✏️</Button>
+    <Button size="sm" variant="ghost" title="Sil">🗑</Button>
 
 
-            <div className="flex gap-1 ml-2">
+
+
+
+
+
+
+
+
+            
               <Button
                 size="sm"
                 variant="outline"
