@@ -581,21 +581,18 @@ const renderSection = (
         <div className="p-3">
           <div className="flex items-start justify-between">
             <button
-  {...dragHandleProps}
-onClick={() => {
-  if (isDragging) return; // 👈 DRAG SIRASINDA TIKLAMA YOK
-
-  setExpandedSections((prev) => {
-    const newSet = new Set(prev);
-    if (newSet.has(sectionKey)) {
-      newSet.delete(sectionKey);
-    } else {
-      newSet.add(sectionKey);
-    }
-    return newSet;
-  });
-}}
-  className="flex items-center gap-2 flex-1 text-left cursor-grab active:cursor-grabbing hover:opacity-80 transition-opacity"
+  onClick={() => {
+    setExpandedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionKey)) {
+        newSet.delete(sectionKey);
+      } else {
+        newSet.add(sectionKey);
+      }
+      return newSet;
+    });
+  }}
+  className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
 >
   {isExpanded ? (
     <ChevronDown className="h-4 w-4 shrink-0" />
@@ -615,6 +612,7 @@ onClick={() => {
     )}
   </div>
 </button>
+
 
             <div className="flex gap-1 ml-2">
               <Button
