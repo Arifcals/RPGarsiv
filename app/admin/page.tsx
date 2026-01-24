@@ -116,7 +116,7 @@ export default function AdminPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
+  const isSearching = searchQuery.trim().length > 0;
   // Bölüm düzenleme
   const [editSectionOpen, setEditSectionOpen] = useState(false);
   const [editingSectionPath, setEditingSectionPath] = useState<number[]>([]);
@@ -1917,9 +1917,13 @@ const visibleSections: Section[] = filterSections(
   onDragEnd={(event) => {
     setIsDragging(false);
 
+    // 🔒 ARAMA AÇIKSA HİÇBİR ŞEY YAPMA
+    if (isSearching) return;
+
     const { active, over } = event;
     if (!over) return;
 
+    // ⬇️ BURADAN SONRASI AYNI KALIYOR
     const fromPath = active.id.toString().split("-").map(Number);
     const toPath = over.id.toString().split("-").map(Number);
 
