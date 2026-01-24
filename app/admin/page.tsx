@@ -750,18 +750,56 @@ const renderSection = (
             <h1 className="text-3xl font-bold">Admin Paneli</h1>
             <p className="text-sm text-muted-foreground mt-1">Oyunları ve bölümleri yönetin</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={toggleTheme} className="rounded-full">
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="rounded-full">
-              <LogOut className="h-4 w-4" />
-              Çıkış
-            </Button>
-            <Button size="sm" asChild className=" rounded-full border border-primary">
-              <a href="/">Ana Sayfa</a>
-            </Button>
-          </div>
+<div className="flex items-center gap-2">
+  {/* 🔍 ARAMA */}
+{/* 🔍 ARAMA */}
+<div className="relative w-56 mr-2">
+  <input
+    type="text"
+    placeholder="Ara..."
+    className="
+      w-full h-9
+      rounded-full
+      bg-card
+      border border-border
+      pl-9 pr-3
+      text-sm
+      text-foreground
+      placeholder:text-muted-foreground
+      focus:outline-none
+      focus:ring-2 focus:ring-primary/40
+      transition
+    "
+  />
+  <svg
+    className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"
+    />
+  </svg>
+</div>
+
+  <Button variant="outline" size="sm" onClick={toggleTheme} className="rounded-full">
+    {isDark ? <Sun /> : <Moon />}
+  </Button>
+
+  <Button variant="outline" size="sm" onClick={handleLogout} className="rounded-full">
+    <LogOut className="h-4 w-4" />
+    Çıkış
+  </Button>
+
+  <Button size="sm" asChild className="rounded-full border border-primary">
+    <a href="/">Ana Sayfa</a>
+  </Button>
+</div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
