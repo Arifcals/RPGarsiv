@@ -41,10 +41,6 @@ export default function Home() {
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["section-0"]));
   const [searchQuery, setSearchQuery] = useState("");
   const isSearching = searchQuery.trim().length > 0;
-  const [readingMode, setReadingMode] = useState(false);
-  
-
-
 
   useEffect(() => {
     const theme = localStorage.getItem("theme");
@@ -69,62 +65,54 @@ export default function Home() {
     fetchGames();
   }, []);
 
-//Arama kısmı
+  //Arama kısmı
 
+  const fetchGames = async () => {
+    try {
+      const res = await fetch("/api/games", {
+        cache: "no-store",
+      });
+      const data = await res.json();
 
+      setGames(data);
 
-
-
-
-
-const fetchGames = async () => {
-  try {
-    const res = await fetch("/api/games", {
-      cache: "no-store",
-    });
-    const data = await res.json();
-
-    setGames(data);
-
-    if (data.length === 0) {
+      if (data.length === 0) {
+        setSelectedGame(null);
+      } else if (selectedGame) {
+        const updated = data.find((g: Game) => g._id === selectedGame._id);
+        setSelectedGame(updated || null);
+      } else {
+        setSelectedGame(data[0]);
+      }
+    } catch (error) {
+      console.error("Oyunlar yüklenirken hata:", error);
+      setGames([]);
       setSelectedGame(null);
-    } else if (selectedGame) {
-const updated = data.find((g: Game) => g._id === selectedGame._id);
-      setSelectedGame(updated || null);
-    } else {
-      setSelectedGame(data[0]);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Oyunlar yüklenirken hata:", error);
-    setGames([]);
-    setSelectedGame(null);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleGameClick = async (game: Game) => {
-  setSelectedGame(game);
-  setOpenSections(new Set(["section-0"]));
+    setSelectedGame(game);
+    setOpenSections(new Set(["section-0"]));
 
-  try {
-    await fetch(`/api/games/${game._id}/click`, { method: "POST" });
+    try {
+      await fetch(`/api/games/${game._id}/click`, { method: "POST" });
 
-    const res = await fetch("/api/games");
-    const data = await res.json();
+      const res = await fetch("/api/games");
+      const data = await res.json();
 
-    if (Array.isArray(data)) {
-      setGames(data);
-    } else {
-      console.error("Click sonrası games array değil:", data);
-      setGames([]);
+      if (Array.isArray(data)) {
+        setGames(data);
+      } else {
+        console.error("Click sonrası games array değil:", data);
+        setGames([]);
+      }
+    } catch (error) {
+      console.error("Tıklama kaydedilemedi:", error);
     }
-  } catch (error) {
-    console.error("Tıklama kaydedilemedi:", error);
-  }
-};
-
+  };
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
@@ -230,49 +218,28 @@ const updated = data.find((g: Game) => g._id === selectedGame._id);
     );
   };
 
+  const filterSections = (sections: Section[], query: string): Section[] => {
+    const q = query.trim().toLowerCase();
+    if (!q) return sections;
 
-const filterSections = (sections: Section[], query: string): Section[] => {
-  const q = query.trim().toLowerCase();
-  if (!q) return sections;
+    return sections
+      .map((section) => {
+        const titleMatch = section.title.toLowerCase().includes(q);
+        const contentMatch = section.content.toLowerCase().includes(q);
 
-  return sections
-    .map((section) => {
-      const titleMatch = section.title.toLowerCase().includes(q);
-      const contentMatch = section.content.toLowerCase().includes(q);
+        const filteredSubsections = section.subsections ? filterSections(section.subsections, query) : [];
 
-      const filteredSubsections = section.subsections
-        ? filterSections(section.subsections, query)
-        : [];
+        if (titleMatch || contentMatch || filteredSubsections.length > 0) {
+          return {
+            ...section,
+            subsections: filteredSubsections,
+          };
+        }
 
-      if (titleMatch || contentMatch || filteredSubsections.length > 0) {
-        return {
-          ...section,
-          subsections: filteredSubsections,
-        };
-      }
-
-      return null;
-    })
-    .filter(Boolean) as Section[];
-};
-
-const visibleSections = selectedGame
-  ? filterSections(selectedGame.sections, searchQuery)
-  : [];
-
-
-useEffect(() => {
-  if (isSearching) {
-    // Arama varken tüm üst başlıkları aç
-    const allOpen = new Set(
-      visibleSections.map((_, idx) => `section-${idx}`)
-    );
-    setOpenSections(allOpen);
-  }
-}, [isSearching, searchQuery, visibleSections]);
-
-
-
+        return null;
+      })
+      .filter(Boolean) as Section[];
+  };
 
   // Recursive subsection renderer
   const renderSubsection = (section: Section, sectionId: string, depth: number): React.ReactNode => {
@@ -324,37 +291,35 @@ useEffect(() => {
     );
   }
 
+  const visibleSections = selectedGame ? filterSections(selectedGame.sections, searchQuery) : [];
 
-
-
-
-return (
-  <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
-
-    {/* GRID */}
-    <div
-      className={`
-        grid
-        gap-4.5
-        p-5.5 pb-15
-        ${readingMode ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-[320px_1fr]"}
-      `}
-    >
-      {/* SIDEBAR */}
-      {!readingMode && (
+  return (
+    <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4.5 p-5.5 pb-15">
+        {/* Sidebar */}
         <aside className="lg:sticky lg:top-4.5 lg:self-start h-fit">
-          <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] overflow-hidden">
+          <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
             <div className="p-3.5 border-b border-[#d7d7d0] dark:border-[#272d3a] flex justify-between items-center">
-              <b className="text-sm text-[#222] dark:text-[#e7e9ee]">Çeviriler</b>
-
+              <div className="brand">
+                <b className="text-[14px] text-[#222] dark:text-[#e7e9ee]">Çeviriler</b>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleTheme}
-                className="rounded-full gap-1.5 text-xs"
+                className="rounded-full gap-1.5 border-[#d7d7d0] dark:border-[#272d3a] bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] text-[#222] dark:text-[#e7e9ee] hover:bg-[rgba(0,0,0,.05)] dark:hover:bg-[rgba(255,255,255,.1)] text-xs"
               >
-                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                {isDark ? "Light" : "Dark"}
+                {isDark ? (
+                  <>
+                    <Sun className="h-4 w-4" />
+                    Light
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-4 w-4" />
+                    Dark
+                  </>
+                )}
               </Button>
             </div>
 
@@ -363,26 +328,30 @@ return (
                 <button
                   key={game._id}
                   onClick={() => handleGameClick(game)}
-                  className={`flex gap-2.5 p-2.5 rounded-xl text-left ${
+                  className={`flex gap-2.5 p-2.5 rounded-xl cursor-pointer transition-all text-left ${
                     selectedGame?._id === game._id
-                      ? "bg-[rgba(31,111,235,.12)]"
-                      : "hover:bg-[rgba(0,0,0,.03)]"
+                      ? "bg-[rgba(31,111,235,.12)] border border-[rgba(31,111,235,.35)]"
+                      : "border border-transparent hover:bg-[rgba(0,0,0,.03)] dark:hover:bg-[rgba(255,255,255,.03)]"
                   }`}
                 >
-                  <div className="w-8.5 h-8.5 rounded-xl grid place-items-center">
+                  <div className="w-8.5 h-8.5 rounded-xl bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] grid place-items-center shrink-0 overflow-hidden">
                     {game.imageUrl ? (
-                      <img src={game.imageUrl} className="w-full h-full object-cover rounded-xl" />
+                      <img src={game.imageUrl} alt={game.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span>{game.icon || "🎮"}</span>
+                      <span className="text-[20px]">{game.icon || "🎮"}</span>
                     )}
                   </div>
-
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-[#222] dark:text-[#e7e9ee]">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-[14px] leading-tight text-[#222] dark:text-[#e7e9ee]">
                       {game.name}
                     </div>
-                    <div className="text-xs opacity-70 flex items-center gap-1">
-                      <Eye className="w-3 h-3" /> {game.clickCount}
+                    {game.desc && (
+                      <div className="text-[11px] leading-tight opacity-65 font-normal text-[#666] dark:text-[#a7adbb] mt-0.5">
+                        {game.desc}
+                      </div>
+                    )}
+                    <div className="text-[11px] text-[#666] dark:text-[#a7adbb] mt-1 opacity-70 flex items-center gap-1">
+                      <Eye className="w-3 h-3" /> {game.clickCount} görüntülenme
                     </div>
                   </div>
                 </button>
@@ -390,104 +359,101 @@ return (
             </div>
           </div>
         </aside>
-      )}
 
-      {/* MAIN */}
-      <main className={`w-full ${readingMode ? "max-w-3xl mx-auto" : ""}`}>
-        {selectedGame && (
-          <>
-           <header className="mb-5 grid grid-cols-[1fr_auto_1fr] items-center">
-  
-  {/* SOL: boş alan (denge için) */}
-  <div />
+        {/* Main */}
+        <main className="max-w-7xl mx-auto w-full">
+          {selectedGame ? (
+            <>
+              <header className="mb-4.5 flex flex-col items-center text-center">
+                <h1 className="text-[34px] font-bold ...">{selectedGame.name}</h1>
 
-  {/* ORTA: BAŞLIK */}
-  <h1 className="text-[32px] font-bold text-[#e7e9ee] text-center">
-    {selectedGame.name}
-  </h1>
-
-{/* 🔍 ARAMA */}
-<div className="mt-3 w-full max-w-md">
-<input
-  type="text"
-  placeholder="Aramaa"
-  value={searchQuery}
-  onChange={(e) => setSearchQuery(e.target.value)}
-  className="
-    w-full h-10 rounded-xl
+                {/* 🔍 ARAMA */}
+                <div className="mt-3 w-full max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Arama"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="
+    w-full h-10 px-4 rounded-xl
     border border-[#d7d7d0] dark:border-[#272d3a]
     bg-white dark:bg-[#101521]
     text-[#222] dark:text-[#e7e9ee]
-
     text-center
     placeholder:text-center
     placeholder:text-[#777]
-
-    focus:outline-none
-    focus:ring-2 focus:ring-[#1f6feb]/40
+    focus:outline-none focus:ring-2 focus:ring-[#1f6feb]/40
   "
-/>
-</div>
-</header>
+                  />
+                </div>
+              </header>
 
+              <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
+                {visibleSections.map((section, idx) => {
+                  const sectionId = `section-${idx}`;
+                  const isOpen = openSections.has(sectionId);
 
-            {/* CONTENT CARD */}
-            <div
-              className={`
-                bg-white dark:bg-[#151922]
-                border border-[#d7d7d0] dark:border-[#272d3a]
-                rounded-[14px]
-                overflow-hidden
-                ${readingMode ? "text-[15px]" : ""}
-              `}
-            >
-              {visibleSections.map((section, idx) => {
-                const sectionId = `section-${idx}`;
-                const isOpen = openSections.has(sectionId);
+                  return (
+                    <div key={idx} className="border-t border-[#d7d7d0] dark:border-[#272d3a] first:border-t-0">
+                      <button
+                        onClick={() => toggleSection(sectionId)}
+                        className="w-full p-4.5 flex justify-between items-center cursor-pointer hover:bg-[rgba(0,0,0,.02)] dark:hover:bg-[rgba(255,255,255,.02)] transition-colors text-left"
+                      >
+                        <div className="font-medium text-[16px] text-[#222] dark:text-[#e7e9ee]">{section.title}</div>
+                        <div
+                          className={`w-6.5 h-6.5 rounded-[10px] border border-[#d7d7d0] dark:border-[#272d3a] grid place-items-center bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] transition-transform ${
+                            isOpen ? "rotate-90 text-[#1f6feb] dark:text-[#6ea8ff]" : ""
+                          }`}
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </div>
+                      </button>
 
-                return (
-                  <div key={idx} className="border-t first:border-t-0">
-                    <button
-                      onClick={() => toggleSection(sectionId)}
-                      className="w-full p-4.5 flex justify-between items-center"
-                    >
-                      <div className="font-medium">{section.title}</div>
-                      <ChevronRight className={isOpen ? "rotate-90" : ""} />
-                    </button>
+                      {isOpen && (
+                        <div className="px-4.5 pb-4.5">
+                          {renderContentWithImages(section.content, section.images, section.callouts)}
 
-                    {isOpen && (
-                      <div className="px-4.5 pb-4.5">
-                        {renderContentWithImages(
-                          section.content,
-                          section.images,
-                          section.callouts
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                          {section.subsections && section.subsections.length > 0 && (
+                            <div className="mt-2.5 space-y-2.5">
+                              {section.subsections.map((sub, subIdx) =>
+                                renderSubsection(sub, `${sectionId}-sub-${subIdx}`, 1),
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <footer className="mt-2 text-[13px] text-center text-[#666] dark:text-[#a7adbb]">{/*  */}</footer>
+            </>
+          ) : (
+            <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] p-12 text-center">
+              <p className="text-[#666] dark:text-[#a7adbb]">Henüz oyun eklenmemiş.</p>
             </div>
-          </>
-        )}
-      </main>
-    </div>
+          )}
+        </main>
+      </div>
 
-   {/* Buy Me a Coffee */}
-    {!readingMode && (
+      {/* Buy Me a Coffee Button */}
       <a
         href="https://buymeacoffee.com/rpgarsiv"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-4 left-4 z-50"
+        className="fixed bottom-4 left-4 z-50 transition-opacity hover:opacity-80"
       >
         <img
           src={isDark ? "/buy_me_a_coffee_dark.png" : "/buy_me_a_coffee_light.png"}
-          className="h-10"
+          alt="Buy Me a Coffee"
+          className="h-10 w-auto"
+          onError={(e) => {
+            // Eğer light.png yoksa dark.png kullan
+            e.currentTarget.src = "/buy_me_a_coffee_dark.png";
+          }}
         />
       </a>
-    )}
-
-  </div>
-);
+    </div>
+  );
 }
