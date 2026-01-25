@@ -1551,7 +1551,7 @@ const visibleSections: Section[] = filterSections(
                         }
                       }}
                     >
-<DialogContent className="w-[90vw] max-w-[1400px] max-h-[90vh] overflow-y-auto">
+<DialogContent className="w-[90vw] max-w-[1400px] max-h-[140vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>
                             {editingSectionPath.length > 1 ? "Alt Bölümü Düzenle" : "Bölümü Düzenle"}
