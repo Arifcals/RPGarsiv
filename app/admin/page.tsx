@@ -1,8 +1,5 @@
 "use client";
 
-import { DndContext } from "@dnd-kit/core";
-import { SortableContext, useSortable, arrayMove } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState, JSX } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -56,27 +53,7 @@ interface Game {
 }
 
 
-function SortableItem({
-  id,
-  children,
-}: {
-  id: string;
-  children: (dragHandleProps: any) => React.ReactNode;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      {children(listeners)}
-    </div>
-  );
-}
 
 
 
@@ -114,7 +91,6 @@ export default function AdminPage() {
   const [sectionContent, setSectionContent] = useState("");
   const [parentSectionPath, setParentSectionPath] = useState<number[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [isDragging, setIsDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const isSearching = searchQuery.trim().length > 0;
   // Bölüm düzenleme
@@ -143,22 +119,7 @@ export default function AdminPage() {
 
   
 
-  const saveSectionsOrder = async (sections: Section[]) => {
-    if (!selectedGame) return;
 
-    try {
-      await fetch(`/api/games/${selectedGame._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...selectedGame,
-          sections,
-        }),
-      });
-    } catch (error) {
-      console.error("Sıralama kaydedilemedi:", error);
-    }
-  };
 
 
   
@@ -613,8 +574,7 @@ const filterSections = (sections: Section[], query: string): Section[] => {
 const renderSection = (
   section: Section,
   path: number[],
-  depth: number,
-  dragHandleProps?: any
+  depth: number
 ): JSX.Element => {
     const sectionKey = path.join("-");
     const isExpanded = expandedSections.has(sectionKey);
@@ -657,16 +617,6 @@ const renderSection = (
     </div>
   </button>
 
-  {/* ☰ DRAG HANDLE — BUTTON’UN DIŞINDA AMA AYNI SATIRDA */}
-  {dragHandleProps && (
-    <div
-      {...dragHandleProps}
-      className="cursor-grab active:cursor-grabbing px-2 py-1 text-muted-foreground hover:text-foreground select-none"
-      title="Sürükle"
-    >
-      ☰
-    </div>
-  )}
 
   {/* Sağdaki aksiyon butonları */}
   <div className="flex gap-1 ml-2">
@@ -749,38 +699,24 @@ const renderSection = (
                 ))}
               </div>
             )}
-            {section.subsections && section.subsections.length > 0 && (
-  <SortableContext
-    items={section.subsections.map((_, i) =>
-      [...path, i].join("-")
-    )}
-  >
-    <div className="mt-3 space-y-2">
-      {section.subsections.map((subsection, subIdx) => {
-        const subPath = [...path, subIdx];
+ 
 
-        return (
-          <SortableItem key={subPath.join("-")} id={subPath.join("-")}>
-            {(dragHandleProps) =>
-              renderSection(
-                subsection,
-                subPath,
-                depth + 1,
-                dragHandleProps
-              )
-            }
-          </SortableItem>
-        );
-      })}
-    </div>
-  </SortableContext>
+{section.subsections && section.subsections.length > 0 && (
+  <div className="mt-3 space-y-2">
+    {section.subsections.map((subsection, subIdx) => {
+      const subPath = [...path, subIdx];
+      return renderSection(subsection, subPath, depth + 1);
+    })}
+  </div>
 )}
 
-          </div>
+
+ </div>
         )}
       </div>
     );
-  };
+};
+
 
   if (!authenticated || loading) {
     return (
@@ -1916,75 +1852,11 @@ const visibleSections: Section[] = filterSections(
   <h3 className="font-bold text-lg">Bölümler</h3>
 
 {selectedGame.sections.length > 0 ? (
-<DndContext
-  onDragStart={() => {
-    setIsDragging(true);
-  }}
-  onDragEnd={(event) => {
-    setIsDragging(false);
-
-    // 🔒 ARAMA AÇIKSA HİÇBİR ŞEY YAPMA
-    if (isSearching) return;
-
-    const { active, over } = event;
-    if (!over) return;
-
-    // ⬇️ BURADAN SONRASI AYNI KALIYOR
-    const fromPath = active.id.toString().split("-").map(Number);
-    const toPath = over.id.toString().split("-").map(Number);
-
-    if (fromPath.length !== toPath.length) return;
-    if (fromPath.slice(0, -1).join() !== toPath.slice(0, -1).join()) return;
-
-    const parentPath = fromPath.slice(0, -1);
-    const fromIndex = fromPath[fromPath.length - 1];
-    const toIndex = toPath[toPath.length - 1];
-
-    const reorder = (sections: Section[], path: number[]): Section[] => {
-      if (path.length === 0) {
-        return arrayMove(sections, fromIndex, toIndex);
-      }
-
-      const copy = [...sections];
-      const idx = path[0];
-      copy[idx] = {
-        ...copy[idx],
-        subsections: reorder(copy[idx].subsections || [], path.slice(1)),
-      };
-      return copy;
-    };
-
-    const newSections = reorder(selectedGame.sections, parentPath);
-
-    setSelectedGame({
-      ...selectedGame,
-      sections: newSections,
-    });
-
-    saveSectionsOrder(newSections);
-  }}
->
-
-  
-    <SortableContext
-  items={visibleSections.map((_, i) => i.toString())}
->
   <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
-    {visibleSections.map((section: Section, idx: number) => {
-      const path = [idx];
-
-      return (
-        <SortableItem key={path.join("-")} id={path.join("-")}>
-          {(dragHandleProps) =>
-            renderSection(section, path, 0, dragHandleProps)
-          }
-        </SortableItem>
-      );
-    })}
+    {visibleSections.map((section: Section, idx: number) =>
+      renderSection(section, [idx], 0)
+    )}
   </div>
-</SortableContext>
-
-  </DndContext>
 ) : (
   <p className="text-center text-muted-foreground py-8">
     Henüz bölüm eklenmemiş.
