@@ -39,6 +39,9 @@ export default function Home() {
   const [isDark, setIsDark] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["section-0"]));
+  const [searchQuery, setSearchQuery] = useState("");
+  const isSearching = searchQuery.trim().length > 0;
+
 
   useEffect(() => {
     const theme = localStorage.getItem("theme");
@@ -62,6 +65,14 @@ export default function Home() {
 
     fetchGames();
   }, []);
+
+//Arama kısmı
+
+
+
+
+
+
 
 const fetchGames = async () => {
   try {
@@ -216,6 +227,38 @@ const updated = data.find((g: Game) => g._id === selectedGame._id);
     );
   };
 
+
+const filterSections = (sections: Section[], query: string): Section[] => {
+  const q = query.trim().toLowerCase();
+  if (!q) return sections;
+
+  return sections
+    .map((section) => {
+      const titleMatch = section.title.toLowerCase().includes(q);
+      const contentMatch = section.content.toLowerCase().includes(q);
+
+      const filteredSubsections = section.subsections
+        ? filterSections(section.subsections, query)
+        : [];
+
+      if (titleMatch || contentMatch || filteredSubsections.length > 0) {
+        return {
+          ...section,
+          subsections: filteredSubsections,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean) as Section[];
+};
+
+
+
+
+
+
+
   // Recursive subsection renderer
   const renderSubsection = (section: Section, sectionId: string, depth: number): React.ReactNode => {
     const isOpen = openSections.has(sectionId);
@@ -265,6 +308,12 @@ const updated = data.find((g: Game) => g._id === selectedGame._id);
       </div>
     );
   }
+
+const visibleSections = selectedGame
+  ? filterSections(selectedGame.sections, searchQuery)
+  : [];
+
+
 
   return (
     <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
@@ -337,14 +386,32 @@ const updated = data.find((g: Game) => g._id === selectedGame._id);
         <main className="max-w-7xl mx-auto w-full">
           {selectedGame ? (
             <>
-              <header className="mb-4.5 flex flex-col items-center text-center">
-                <h1 className="text-[34px] font-bold m-0 mb-2.5 text-[#222] dark:text-[#e7e9ee] font-(family-name:--font-inter)">
-                  {selectedGame.name}
-                </h1>
-              </header>
+<header className="mb-4.5 flex flex-col items-center text-center">
+  <h1 className="text-[34px] font-bold ...">
+    {selectedGame.name}
+  </h1>
+
+  {/* 🔍 ARAMA */}
+  <div className="mt-3 w-full max-w-md">
+    <input
+      type="text"
+      placeholder="Bu oyunda ara..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="
+        w-full h-10 px-4 rounded-xl
+        border border-[#d7d7d0] dark:border-[#272d3a]
+        bg-white dark:bg-[#101521]
+        text-[#222] dark:text-[#e7e9ee]
+        placeholder:text-[#777]
+        focus:outline-none focus:ring-2 focus:ring-[#1f6feb]/40
+      "
+    />
+  </div>
+</header>
 
               <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
-                {selectedGame.sections.map((section, idx) => {
+                {visibleSections.map((section, idx) => {
                   const sectionId = `section-${idx}`;
                   const isOpen = openSections.has(sectionId);
 
