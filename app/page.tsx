@@ -41,6 +41,9 @@ export default function Home() {
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["section-0"]));
   const [searchQuery, setSearchQuery] = useState("");
   const isSearching = searchQuery.trim().length > 0;
+  const [readingMode, setReadingMode] = useState(false);
+  
+
 
 
   useEffect(() => {
@@ -255,6 +258,15 @@ const filterSections = (sections: Section[], query: string): Section[] => {
 
 
 
+useEffect(() => {
+  if (isSearching) {
+    // Arama varken tüm üst başlıkları aç
+    const allOpen = new Set(
+      visibleSections.map((_, idx) => `section-${idx}`)
+    );
+    setOpenSections(allOpen);
+  }
+}, [isSearching, searchQuery]);
 
 
 
@@ -321,10 +333,17 @@ const visibleSections = selectedGame
         {/* Sidebar */}
         <aside className="lg:sticky lg:top-4.5 lg:self-start h-fit">
           <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
-            <div className="p-3.5 border-b border-[#d7d7d0] dark:border-[#272d3a] flex justify-between items-center">
-              <div className="brand">
-                <b className="text-[14px] text-[#222] dark:text-[#e7e9ee]">Çeviriler</b>
-              </div>
+           <div
+  className={`
+    bg-white dark:bg-[#151922]
+    border border-[#d7d7d0] dark:border-[#272d3a]
+    rounded-[14px]
+    shadow-[0_8px_24px_rgba(0,0,0,.08)]
+    dark:shadow-[0_10px_30px_rgba(0,0,0,.45)]
+    overflow-hidden
+    ${readingMode ? "max-w-3xl mx-auto text-[15px]" : ""}
+  `}
+>
               <Button
                 variant="outline"
                 size="sm"
@@ -386,29 +405,52 @@ const visibleSections = selectedGame
         <main className="max-w-7xl mx-auto w-full">
           {selectedGame ? (
             <>
-<header className="mb-4.5 flex flex-col items-center text-center">
-  <h1 className="text-[34px] font-bold ...">
+<header className="mb-5 flex items-center justify-between">
+  {/* Sol: Başlık */}
+  <h1 className="text-[32px] font-bold text-[#e7e9ee]">
     {selectedGame.name}
   </h1>
 
-  {/* 🔍 ARAMA */}
-  <div className="mt-3 w-full max-w-md">
+  {/* Sağ: Arama + Okuma Modu */}
+  <div className="flex items-center gap-2">
+    {/* 🔍 Arama */}
     <input
       type="text"
-      placeholder="Arama"
+      placeholder="Bu oyunda ara..."
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
       className="
-        w-full h-10 px-4 rounded-xl
-        border border-[#d7d7d0] dark:border-[#272d3a]
-        bg-white dark:bg-[#101521]
-        text-[#222] dark:text-[#e7e9ee]
-        placeholder:text-[#777]
-        focus:outline-none focus:ring-2 focus:ring-[#1f6feb]/40
+        h-9 w-56
+        rounded-full
+        bg-[#0f1320]
+        border border-[#272d3a]
+        px-4
+        text-sm
+        text-[#e7e9ee]
+        placeholder:text-[#7c8396]
+        focus:outline-none
+        focus:ring-2 focus:ring-[#1f6feb]/40
       "
     />
+
+    {/* 📖 Okuma Modu */}
+    <button
+      onClick={() => setReadingMode((v) => !v)}
+      className="
+        h-9 px-3
+        rounded-full
+        border border-[#272d3a]
+        bg-[#0f1320]
+        text-xs text-[#e7e9ee]
+        hover:bg-[#1a1f2e]
+        transition
+      "
+    >
+      {readingMode ? "Normal Mod" : "Okuma Modu"}
+    </button>
   </div>
 </header>
+
 
               <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
                 {visibleSections.map((section, idx) => {
