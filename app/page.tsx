@@ -395,7 +395,7 @@ const visibleSections = selectedGame
 <div className="mt-3 w-full max-w-md">
 <input
   type="text"
-  placeholder="Arama"
+  placeholder="Aramaa"
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
   className="
