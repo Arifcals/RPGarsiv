@@ -256,6 +256,9 @@ const filterSections = (sections: Section[], query: string): Section[] => {
     .filter(Boolean) as Section[];
 };
 
+const visibleSections = selectedGame
+  ? filterSections(selectedGame.sections, searchQuery)
+  : [];
 
 
 useEffect(() => {
@@ -321,14 +324,14 @@ useEffect(() => {
     );
   }
 
-const visibleSections = selectedGame
-  ? filterSections(selectedGame.sections, searchQuery)
-  : [];
+
 
 
 
 return (
   <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
+
+    {/* GRID */}
     <div
       className={`
         grid
@@ -340,109 +343,139 @@ return (
       {/* SIDEBAR */}
       {!readingMode && (
         <aside className="lg:sticky lg:top-4.5 lg:self-start h-fit">
-          {/* 🔽 BURAYA SIDEBAR İÇERİĞİN GELECEK */}
+          <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] overflow-hidden">
+            <div className="p-3.5 border-b border-[#d7d7d0] dark:border-[#272d3a] flex justify-between items-center">
+              <b className="text-sm text-[#222] dark:text-[#e7e9ee]">Çeviriler</b>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTheme}
+                className="rounded-full gap-1.5 text-xs"
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {isDark ? "Light" : "Dark"}
+              </Button>
+            </div>
+
+            <div className="p-2.5 flex flex-col gap-2">
+              {games.map((game) => (
+                <button
+                  key={game._id}
+                  onClick={() => handleGameClick(game)}
+                  className={`flex gap-2.5 p-2.5 rounded-xl text-left ${
+                    selectedGame?._id === game._id
+                      ? "bg-[rgba(31,111,235,.12)]"
+                      : "hover:bg-[rgba(0,0,0,.03)]"
+                  }`}
+                >
+                  <div className="w-8.5 h-8.5 rounded-xl grid place-items-center">
+                    {game.imageUrl ? (
+                      <img src={game.imageUrl} className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                      <span>{game.icon || "🎮"}</span>
+                    )}
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-[#222] dark:text-[#e7e9ee]">
+                      {game.name}
+                    </div>
+                    <div className="text-xs opacity-70 flex items-center gap-1">
+                      <Eye className="w-3 h-3" /> {game.clickCount}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </aside>
       )}
 
       {/* MAIN */}
       <main className="w-full">
-        {/* HEADER */}
         {selectedGame && (
-          <header className="mb-5 flex items-center justify-between">
-            <h1 className="text-[32px] font-bold text-[#e7e9ee]">
-              {selectedGame.name}
-            </h1>
+          <>
+            {/* HEADER */}
+            <header className="mb-5 flex items-center justify-between">
+              <h1 className="text-[32px] font-bold text-[#e7e9ee]">
+                {selectedGame.name}
+              </h1>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Bu oyunda ara..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-56 rounded-full bg-[#0f1320] border border-[#272d3a] px-4 text-sm text-[#e7e9ee]"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Bu oyunda ara..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-9 w-56 rounded-full bg-[#0f1320] border border-[#272d3a] px-4 text-sm text-[#e7e9ee]"
+                />
 
-              <button
-                onClick={() => setReadingMode((v) => !v)}
-                className="h-9 px-3 rounded-full border border-[#272d3a] bg-[#0f1320] text-xs text-[#e7e9ee]"
-              >
-                {readingMode ? "Normal Mod" : "Okuma Modu"}
-              </button>
+                <button
+                  onClick={() => setReadingMode((v) => !v)}
+                  className="h-9 px-3 rounded-full border border-[#272d3a] bg-[#0f1320] text-xs text-[#e7e9ee]"
+                >
+                  {readingMode ? "Normal Mod" : "Okuma Modu"}
+                </button>
+              </div>
+            </header>
+
+            {/* CONTENT CARD */}
+            <div
+              className={`
+                bg-white dark:bg-[#151922]
+                border border-[#d7d7d0] dark:border-[#272d3a]
+                rounded-[14px]
+                overflow-hidden
+                ${readingMode ? "max-w-3xl mx-auto text-[15px]" : ""}
+              `}
+            >
+              {visibleSections.map((section, idx) => {
+                const sectionId = `section-${idx}`;
+                const isOpen = openSections.has(sectionId);
+
+                return (
+                  <div key={idx} className="border-t first:border-t-0">
+                    <button
+                      onClick={() => toggleSection(sectionId)}
+                      className="w-full p-4.5 flex justify-between items-center"
+                    >
+                      <div className="font-medium">{section.title}</div>
+                      <ChevronRight className={isOpen ? "rotate-90" : ""} />
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-4.5 pb-4.5">
+                        {renderContentWithImages(
+                          section.content,
+                          section.images,
+                          section.callouts
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          </header>
+          </>
         )}
-
-        {/* CONTENT CARD (SADECE 1 TANE!) */}
-        <div
-          className={`
-            bg-white dark:bg-[#151922]
-            border border-[#d7d7d0] dark:border-[#272d3a]
-            rounded-[14px]
-            shadow-[0_8px_24px_rgba(0,0,0,.08)]
-            dark:shadow-[0_10px_30px_rgba(0,0,0,.45)]
-            overflow-hidden
-            transition-all
-            ${readingMode ? "max-w-3xl mx-auto text-[15px]" : ""}
-          `}
-        >
-          {selectedGame ? (
-            visibleSections.map((section, idx) => {
-              const sectionId = `section-${idx}`;
-              const isOpen = openSections.has(sectionId);
-
-              return (
-                <div key={idx} className="border-t first:border-t-0">
-                  <button
-                    onClick={() => toggleSection(sectionId)}
-                    className="w-full p-4.5 flex justify-between items-center"
-                  >
-                    <div>{section.title}</div>
-                    <ChevronRight
-                      className={`transition-transform ${
-                        isOpen ? "rotate-90" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {isOpen && (
-                    <div className="px-4.5 pb-4.5">
-                      {renderContentWithImages(
-                        section.content,
-                        section.images,
-                        section.callouts
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <p className="p-12 text-center text-[#666]">
-              Henüz oyun eklenmemiş.
-            </p>
-          )}
-        </div>
       </main>
     </div>
-);
 
-      {/* Buy Me a Coffee Button */}
+   {/* Buy Me a Coffee */}
+    {!readingMode && (
       <a
         href="https://buymeacoffee.com/rpgarsiv"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-4 left-4 z-50 transition-transform hover:scale-105"
+        className="fixed bottom-4 left-4 z-50"
       >
         <img
           src={isDark ? "/buy_me_a_coffee_dark.png" : "/buy_me_a_coffee_light.png"}
-          alt="Buy Me a Coffee"
-          className="h-10 w-auto"
-          onError={(e) => {
-            // Eğer light.png yoksa dark.png kullan
-            e.currentTarget.src = "/buy_me_a_coffee_dark.png";
-          }}
+          className="h-10"
         />
       </a>
-    </div>
-  );
-}
+    )}
+
+  </div>
+)};
