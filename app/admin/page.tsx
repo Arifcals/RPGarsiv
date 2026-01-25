@@ -423,7 +423,11 @@ export default function AdminPage() {
         subsections: [],
       };
 
-      const updatedSections = addSubsectionAtPath(selectedGame.sections, parentSectionPath, newSection);
+const updatedSections = addSubsectionAtPath(
+  selectedGame.sections,
+  parentSectionPath,
+  newSection
+);
 
       console.log("Updated sections:", JSON.stringify(updatedSections, null, 2));
 
@@ -492,13 +496,14 @@ export default function AdminPage() {
         uploadedImages.push({ url });
       }
 
-      const updatedSection: Section = {
-        title: sectionTitle,
-        content: sectionContent,
-        images: uploadedImages.length > 0 ? uploadedImages : undefined,
-        callouts: sectionCallouts.length > 0 ? sectionCallouts : undefined,
-        subsections: existingSection?.subsections || [],
-      };
+const updatedSection: Section = {
+  ...existingSection, // 🔥 EN KRİTİK SATIR
+  title: sectionTitle,
+  content: sectionContent,
+  images: uploadedImages.length > 0 ? uploadedImages : undefined,
+  callouts: sectionCallouts.length > 0 ? sectionCallouts : undefined,
+  subsections: existingSection?.subsections || [],
+};
 
       const updatedSections = setSectionAtPath(selectedGame.sections, editingSectionPath, updatedSection);
 
@@ -521,6 +526,7 @@ export default function AdminPage() {
         setSectionTitle("");
         setSectionContent("");
         setEditingSectionPath([]);
+        setParentSectionPath([]); // 🔥 ekle
         setSectionImages([]);
         setPendingImageFiles([]);
         setSectionCallouts([]);
