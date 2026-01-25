@@ -391,23 +391,24 @@ const visibleSections = selectedGame
     {selectedGame.name}
   </h1>
 
-  {/* 🔍 ARAMA */}
-  <div className="mt-3 w-full max-w-md">
-    <input
-      type="text"
-      placeholder="Arama"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="
-        w-full h-10 px-4 rounded-xl
-        border border-[#d7d7d0] dark:border-[#272d3a]
-        bg-white dark:bg-[#101521]
-        text-[#222] dark:text-[#e7e9ee]
-        placeholder:text-[#777]
-        focus:outline-none focus:ring-2 focus:ring-[#1f6feb]/40
-      "
-    />
-  </div>
+{/* 🔍 ARAMA */}
+<div className="mt-3 w-full max-w-md">
+  <input
+    type="text"
+    placeholder="Arama"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="
+      w-full h-10 px-4 rounded-xl
+      border border-[#d7d7d0] dark:border-[#272d3a]
+      bg-white dark:bg-[#101521]
+      text-[#222] dark:text-[#e7e9ee]
+      placeholder:text-[#777]
+      text-center
+      focus:outline-none focus:ring-2 focus:ring-[#1f6feb]/40
+    "
+  />
+</div>
 </header>
 
               <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
