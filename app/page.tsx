@@ -63,37 +63,22 @@ export default function Home() {
     fetchGames();
   }, []);
 
-  const fetchGames = async () => {
+const fetchGames = async () => {
   try {
-const res = await fetch("/api/games", {
-  cache: "no-store",
-});    const data = await res.json();
+    const res = await fetch("/api/games", {
+      cache: "no-store",
+    });
+    const data = await res.json();
 
-    console.log("HOME GAMES DATA:", data);
+    setGames(data);
 
-    if (!res.ok || !Array.isArray(data)) {
-      console.error("API array dönmedi:", data);
-      setGames([]);
+    if (data.length === 0) {
       setSelectedGame(null);
-      return;
-    }
-
-   setGames(data);
-
-if (data.length === 0) {
-  setSelectedGame(null);
-} else if (selectedGame) {
-  const updated = data.find(g => g._id === selectedGame._id);
-  setSelectedGame(updated || null);
-} else {
-  setSelectedGame(data[0]);
-}
-
-
-
-
+    } else if (selectedGame) {
+      const updated = data.find(g => g._id === selectedGame._id);
+      setSelectedGame(updated || null);
     } else {
-      setSelectedGame(null);
+      setSelectedGame(data[0]);
     }
   } catch (error) {
     console.error("Oyunlar yüklenirken hata:", error);
