@@ -65,8 +65,9 @@ export default function Home() {
 
   const fetchGames = async () => {
   try {
-    const res = await fetch("/api/games");
-    const data = await res.json();
+const res = await fetch("/api/games", {
+  cache: "no-store",
+});    const data = await res.json();
 
     console.log("HOME GAMES DATA:", data);
 
@@ -77,10 +78,20 @@ export default function Home() {
       return;
     }
 
-    setGames(data);
+   setGames(data);
 
-    if (data.length > 0) {
-      setSelectedGame(data[0]);
+if (data.length === 0) {
+  setSelectedGame(null);
+} else if (selectedGame) {
+  const updated = data.find(g => g._id === selectedGame._id);
+  setSelectedGame(updated || null);
+} else {
+  setSelectedGame(data[0]);
+}
+
+
+
+
     } else {
       setSelectedGame(null);
     }
