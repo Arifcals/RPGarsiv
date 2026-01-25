@@ -75,7 +75,7 @@ const fetchGames = async () => {
     if (data.length === 0) {
       setSelectedGame(null);
     } else if (selectedGame) {
-      const updated = data.find(g => g._id === selectedGame._id);
+const updated = data.find((g: Game) => g._id === selectedGame._id);
       setSelectedGame(updated || null);
     } else {
       setSelectedGame(data[0]);
