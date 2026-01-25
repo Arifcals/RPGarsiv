@@ -42,6 +42,12 @@ interface Section {
   subsections?: Section[];
 }
 
+type SectionWithPath = Omit<Section, "subsections"> & {
+  __path: number[];
+  subsections?: SectionWithPath[];
+};
+
+
 interface Game {
   _id: string;
   icon?: string;
@@ -532,31 +538,47 @@ const updatedSection: Section = {
   };
 
 
-const filterSections = (sections: Section[], query: string): Section[] => {
-  if (!query.trim()) return sections;
-
-  const q = query.toLowerCase();
+const filterSections = (
+  sections: Section[],
+  query: string,
+  basePath: number[] = []
+): SectionWithPath[] => {
+  const q = query.trim().toLowerCase();
 
   return sections
-    .map((section) => {
+    .map((section, idx) => {
+      const currentPath = [...basePath, idx];
+
       const titleMatch = section.title.toLowerCase().includes(q);
       const contentMatch = section.content.toLowerCase().includes(q);
 
       const filteredSubsections = section.subsections
-        ? filterSections(section.subsections, query)
+        ? filterSections(section.subsections, query, currentPath)
         : [];
 
+      // 🔥 Arama yoksa HER ŞEYİ geçir ama path ekle
+      if (!q) {
+        return {
+          ...section,
+          __path: currentPath,
+          subsections: filteredSubsections,
+        };
+      }
+
+      // 🔥 Arama varsa sadece eşleşenleri geçir
       if (titleMatch || contentMatch || filteredSubsections.length > 0) {
         return {
           ...section,
+          __path: currentPath,
           subsections: filteredSubsections,
         };
       }
 
       return null;
     })
-    .filter(Boolean) as Section[];
+    .filter(Boolean) as SectionWithPath[];
 };
+
 
 
 
@@ -572,7 +594,7 @@ const filterSections = (sections: Section[], query: string): Section[] => {
 
   // Recursive section renderer
 const renderSection = (
-  section: Section,
+  section: SectionWithPath,
   path: number[],
   depth: number
 ): JSX.Element => {
@@ -701,15 +723,16 @@ const renderSection = (
             )}
  
 
+
+
+
 {section.subsections && section.subsections.length > 0 && (
   <div className="mt-3 space-y-2">
-    {section.subsections.map((subsection, subIdx) => {
-      const subPath = [...path, subIdx];
-      return renderSection(subsection, subPath, depth + 1);
-    })}
+    {section.subsections.map((subsection) =>
+      renderSection(subsection, subsection.__path, depth + 1)
+    )}
   </div>
 )}
-
 
  </div>
         )}
@@ -726,7 +749,7 @@ const renderSection = (
     );
   }
 
-const visibleSections: Section[] = filterSections(
+const visibleSections: SectionWithPath[] = filterSections(
   selectedGame?.sections || [],
   searchQuery
 );
@@ -1853,8 +1876,8 @@ const visibleSections: Section[] = filterSections(
 
 {selectedGame.sections.length > 0 ? (
   <div className="space-y-2 max-h-150 overflow-y-auto pr-2">
-    {visibleSections.map((section: Section, idx: number) =>
-      renderSection(section, [idx], 0)
+    {visibleSections.map((section) =>
+  renderSection(section, section.__path, 0)
     )}
   </div>
 ) : (
