@@ -399,14 +399,17 @@ const visibleSections = selectedGame
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
   className="
-    w-full h-10 px-4 rounded-xl
+    w-full h-10 rounded-xl
     border border-[#d7d7d0] dark:border-[#272d3a]
     bg-white dark:bg-[#101521]
     text-[#222] dark:text-[#e7e9ee]
+
     text-center
     placeholder:text-center
     placeholder:text-[#777]
-    focus:outline-none focus:ring-2 focus:ring-[#1f6feb]/40
+
+    focus:outline-none
+    focus:ring-2 focus:ring-[#1f6feb]/40
   "
 />
 </div>
