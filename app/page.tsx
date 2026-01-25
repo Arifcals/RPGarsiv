@@ -269,7 +269,7 @@ useEffect(() => {
     );
     setOpenSections(allOpen);
   }
-}, [isSearching, searchQuery]);
+}, [isSearching, searchQuery, visibleSections]);
 
 
 
@@ -393,32 +393,38 @@ return (
       )}
 
       {/* MAIN */}
-      <main className="w-full">
+      <main className={`w-full ${readingMode ? "max-w-3xl mx-auto" : ""}`}>
         {selectedGame && (
           <>
-            {/* HEADER */}
-            <header className="mb-5 flex items-center justify-between">
-              <h1 className="text-[32px] font-bold text-[#e7e9ee]">
-                {selectedGame.name}
-              </h1>
+           <header className="mb-5 grid grid-cols-[1fr_auto_1fr] items-center">
+  
+  {/* SOL: boş alan (denge için) */}
+  <div />
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Bu oyunda ara..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 w-56 rounded-full bg-[#0f1320] border border-[#272d3a] px-4 text-sm text-[#e7e9ee]"
-                />
+  {/* ORTA: BAŞLIK */}
+  <h1 className="text-[32px] font-bold text-[#e7e9ee] text-center">
+    {selectedGame.name}
+  </h1>
 
-                <button
-                  onClick={() => setReadingMode((v) => !v)}
-                  className="h-9 px-3 rounded-full border border-[#272d3a] bg-[#0f1320] text-xs text-[#e7e9ee]"
-                >
-                  {readingMode ? "Normal Mod" : "Okuma Modu"}
-                </button>
-              </div>
-            </header>
+  {/* SAĞ: arama + okuma modu */}
+  <div className="flex items-center gap-2 justify-end">
+    <input
+      type="text"
+      placeholder="Bu oyunda ara..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="h-9 w-56 rounded-full bg-[#0f1320] border border-[#272d3a] px-4 text-sm text-[#e7e9ee]"
+    />
+
+    <button
+      onClick={() => setReadingMode((v) => !v)}
+      className="h-9 px-3 rounded-full border border-[#272d3a] bg-[#0f1320] text-xs text-[#e7e9ee]"
+    >
+      {readingMode ? "Normal Mod" : "Okuma Modu"}
+    </button>
+  </div>
+</header>
+
 
             {/* CONTENT CARD */}
             <div
@@ -427,7 +433,7 @@ return (
                 border border-[#d7d7d0] dark:border-[#272d3a]
                 rounded-[14px]
                 overflow-hidden
-                ${readingMode ? "max-w-3xl mx-auto text-[15px]" : ""}
+                ${readingMode ? "text-[15px]" : ""}
               `}
             >
               {visibleSections.map((section, idx) => {
@@ -478,4 +484,5 @@ return (
     )}
 
   </div>
-)};
+);
+}
