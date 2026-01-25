@@ -442,7 +442,7 @@ export default function Home() {
         href="https://buymeacoffee.com/rpgarsiv"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-4 left-4 z-50 transition-transform hover:scale-105"
+        className="fixed bottom-4 left-4 z-50 transition-opacity hover:opacity-80"
       >
         <img
           src={isDark ? "/buy_me_a_coffee_dark.png" : "/buy_me_a_coffee_light.png"}
