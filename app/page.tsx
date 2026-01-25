@@ -327,179 +327,104 @@ const visibleSections = selectedGame
 
 
 
-  return (
-    <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4.5 p-5.5 pb-15">
-        {/* Sidebar */}
-        <aside className="lg:sticky lg:top-4.5 lg:self-start h-fit">
-          <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
-           <div
-  className={`
-    bg-white dark:bg-[#151922]
-    border border-[#d7d7d0] dark:border-[#272d3a]
-    rounded-[14px]
-    shadow-[0_8px_24px_rgba(0,0,0,.08)]
-    dark:shadow-[0_10px_30px_rgba(0,0,0,.45)]
-    overflow-hidden
-    ${readingMode ? "max-w-3xl mx-auto text-[15px]" : ""}
-  `}
->
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleTheme}
-                className="rounded-full gap-1.5 border-[#d7d7d0] dark:border-[#272d3a] bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] text-[#222] dark:text-[#e7e9ee] hover:bg-[rgba(0,0,0,.05)] dark:hover:bg-[rgba(255,255,255,.1)] text-xs"
-              >
-                {isDark ? (
-                  <>
-                    <Sun className="h-4 w-4" />
-                    Light
-                  </>
-                ) : (
-                  <>
-                    <Moon className="h-4 w-4" />
-                    Dark
-                  </>
-                )}
-              </Button>
-            </div>
-
-            <div className="p-2.5 flex flex-col gap-2">
-              {games.map((game) => (
-                <button
-                  key={game._id}
-                  onClick={() => handleGameClick(game)}
-                  className={`flex gap-2.5 p-2.5 rounded-xl cursor-pointer transition-all text-left ${
-                    selectedGame?._id === game._id
-                      ? "bg-[rgba(31,111,235,.12)] border border-[rgba(31,111,235,.35)]"
-                      : "border border-transparent hover:bg-[rgba(0,0,0,.03)] dark:hover:bg-[rgba(255,255,255,.03)]"
-                  }`}
-                >
-                  <div className="w-8.5 h-8.5 rounded-xl bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] grid place-items-center shrink-0 overflow-hidden">
-                    {game.imageUrl ? (
-                      <img src={game.imageUrl} alt={game.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-[20px]">{game.icon || "🎮"}</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-[14px] leading-tight text-[#222] dark:text-[#e7e9ee]">
-                      {game.name}
-                    </div>
-                    {game.desc && (
-                      <div className="text-[11px] leading-tight opacity-65 font-normal text-[#666] dark:text-[#a7adbb] mt-0.5">
-                        {game.desc}
-                      </div>
-                    )}
-                    <div className="text-[11px] text-[#666] dark:text-[#a7adbb] mt-1 opacity-70 flex items-center gap-1">
-                      <Eye className="w-3 h-3" /> {game.clickCount} görüntülenme
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* Main */}
-        <main className="max-w-7xl mx-auto w-full">
-          {selectedGame ? (
-            <>
-<header className="mb-5 flex items-center justify-between">
-  {/* Sol: Başlık */}
-  <h1 className="text-[32px] font-bold text-[#e7e9ee]">
-    {selectedGame.name}
-  </h1>
-
-  {/* Sağ: Arama + Okuma Modu */}
-  <div className="flex items-center gap-2">
-    {/* 🔍 Arama */}
-    <input
-      type="text"
-      placeholder="Bu oyunda ara..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="
-        h-9 w-56
-        rounded-full
-        bg-[#0f1320]
-        border border-[#272d3a]
-        px-4
-        text-sm
-        text-[#e7e9ee]
-        placeholder:text-[#7c8396]
-        focus:outline-none
-        focus:ring-2 focus:ring-[#1f6feb]/40
-      "
-    />
-
-    {/* 📖 Okuma Modu */}
-    <button
-      onClick={() => setReadingMode((v) => !v)}
-      className="
-        h-9 px-3
-        rounded-full
-        border border-[#272d3a]
-        bg-[#0f1320]
-        text-xs text-[#e7e9ee]
-        hover:bg-[#1a1f2e]
-        transition
-      "
+return (
+  <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
+    <div
+      className={`
+        grid
+        gap-4.5
+        p-5.5 pb-15
+        ${readingMode ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-[320px_1fr]"}
+      `}
     >
-      {readingMode ? "Normal Mod" : "Okuma Modu"}
-    </button>
-  </div>
-</header>
+      {/* SIDEBAR */}
+      {!readingMode && (
+        <aside className="lg:sticky lg:top-4.5 lg:self-start h-fit">
+          {/* 🔽 BURAYA SIDEBAR İÇERİĞİN GELECEK */}
+        </aside>
+      )}
 
+      {/* MAIN */}
+      <main className="w-full">
+        {/* HEADER */}
+        {selectedGame && (
+          <header className="mb-5 flex items-center justify-between">
+            <h1 className="text-[32px] font-bold text-[#e7e9ee]">
+              {selectedGame.name}
+            </h1>
 
-              <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
-                {visibleSections.map((section, idx) => {
-                  const sectionId = `section-${idx}`;
-                  const isOpen = openSections.has(sectionId);
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Bu oyunda ara..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-56 rounded-full bg-[#0f1320] border border-[#272d3a] px-4 text-sm text-[#e7e9ee]"
+              />
 
-                  return (
-                    <div key={idx} className="border-t border-[#d7d7d0] dark:border-[#272d3a] first:border-t-0">
-                      <button
-                        onClick={() => toggleSection(sectionId)}
-                        className="w-full p-4.5 flex justify-between items-center cursor-pointer hover:bg-[rgba(0,0,0,.02)] dark:hover:bg-[rgba(255,255,255,.02)] transition-colors text-left"
-                      >
-                        <div className="font-medium text-[16px] text-[#222] dark:text-[#e7e9ee]">{section.title}</div>
-                        <div
-                          className={`w-6.5 h-6.5 rounded-[10px] border border-[#d7d7d0] dark:border-[#272d3a] grid place-items-center bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] transition-transform ${
-                            isOpen ? "rotate-90 text-[#1f6feb] dark:text-[#6ea8ff]" : ""
-                          }`}
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </div>
-                      </button>
+              <button
+                onClick={() => setReadingMode((v) => !v)}
+                className="h-9 px-3 rounded-full border border-[#272d3a] bg-[#0f1320] text-xs text-[#e7e9ee]"
+              >
+                {readingMode ? "Normal Mod" : "Okuma Modu"}
+              </button>
+            </div>
+          </header>
+        )}
 
-                      {isOpen && (
-                        <div className="px-4.5 pb-4.5">
-                          {renderContentWithImages(section.content, section.images, section.callouts)}
+        {/* CONTENT CARD (SADECE 1 TANE!) */}
+        <div
+          className={`
+            bg-white dark:bg-[#151922]
+            border border-[#d7d7d0] dark:border-[#272d3a]
+            rounded-[14px]
+            shadow-[0_8px_24px_rgba(0,0,0,.08)]
+            dark:shadow-[0_10px_30px_rgba(0,0,0,.45)]
+            overflow-hidden
+            transition-all
+            ${readingMode ? "max-w-3xl mx-auto text-[15px]" : ""}
+          `}
+        >
+          {selectedGame ? (
+            visibleSections.map((section, idx) => {
+              const sectionId = `section-${idx}`;
+              const isOpen = openSections.has(sectionId);
 
-                          {section.subsections && section.subsections.length > 0 && (
-                            <div className="mt-2.5 space-y-2.5">
-                              {section.subsections.map((sub, subIdx) =>
-                                renderSubsection(sub, `${sectionId}-sub-${subIdx}`, 1),
-                              )}
-                            </div>
-                          )}
-                        </div>
+              return (
+                <div key={idx} className="border-t first:border-t-0">
+                  <button
+                    onClick={() => toggleSection(sectionId)}
+                    className="w-full p-4.5 flex justify-between items-center"
+                  >
+                    <div>{section.title}</div>
+                    <ChevronRight
+                      className={`transition-transform ${
+                        isOpen ? "rotate-90" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-4.5 pb-4.5">
+                      {renderContentWithImages(
+                        section.content,
+                        section.images,
+                        section.callouts
                       )}
                     </div>
-                  );
-                })}
-              </div>
-
-              <footer className="mt-2 text-[13px] text-center text-[#666] dark:text-[#a7adbb]">{/*  */}</footer>
-            </>
+                  )}
+                </div>
+              );
+            })
           ) : (
-            <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] p-12 text-center">
-              <p className="text-[#666] dark:text-[#a7adbb]">Henüz oyun eklenmemiş.</p>
-            </div>
+            <p className="p-12 text-center text-[#666]">
+              Henüz oyun eklenmemiş.
+            </p>
           )}
-        </main>
-      </div>
+        </div>
+      </main>
+    </div>
+);
 
       {/* Buy Me a Coffee Button */}
       <a
