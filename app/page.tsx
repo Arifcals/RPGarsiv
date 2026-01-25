@@ -406,23 +406,28 @@ return (
     {selectedGame.name}
   </h1>
 
-  {/* SAĞ: arama + okuma modu */}
-  <div className="flex items-center gap-2 justify-end">
-    <input
-      type="text"
-      placeholder="Bu oyunda ara..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="h-9 w-56 rounded-full bg-[#0f1320] border border-[#272d3a] px-4 text-sm text-[#e7e9ee]"
-    />
+{/* 🔍 ARAMA */}
+<div className="mt-3 w-full max-w-md">
+<input
+  type="text"
+  placeholder="Aramaa"
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  className="
+    w-full h-10 rounded-xl
+    border border-[#d7d7d0] dark:border-[#272d3a]
+    bg-white dark:bg-[#101521]
+    text-[#222] dark:text-[#e7e9ee]
 
-    <button
-      onClick={() => setReadingMode((v) => !v)}
-      className="h-9 px-3 rounded-full border border-[#272d3a] bg-[#0f1320] text-xs text-[#e7e9ee]"
-    >
-      {readingMode ? "Normal Mod" : "Okuma Modu"}
-    </button>
-  </div>
+    text-center
+    placeholder:text-center
+    placeholder:text-[#777]
+
+    focus:outline-none
+    focus:ring-2 focus:ring-[#1f6feb]/40
+  "
+/>
+</div>
 </header>
 
 
