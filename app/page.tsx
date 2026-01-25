@@ -41,6 +41,9 @@ export default function Home() {
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["section-0"]));
   const [searchQuery, setSearchQuery] = useState("");
   const isSearching = searchQuery.trim().length > 0;
+  const [readingMode, setReadingMode] = useState(false);
+  
+
 
 
   useEffect(() => {
@@ -253,8 +256,20 @@ const filterSections = (sections: Section[], query: string): Section[] => {
     .filter(Boolean) as Section[];
 };
 
+const visibleSections = selectedGame
+  ? filterSections(selectedGame.sections, searchQuery)
+  : [];
 
 
+useEffect(() => {
+  if (isSearching) {
+    // Arama varken tüm üst başlıkları aç
+    const allOpen = new Set(
+      visibleSections.map((_, idx) => `section-${idx}`)
+    );
+    setOpenSections(allOpen);
+  }
+}, [isSearching, searchQuery, visibleSections]);
 
 
 
@@ -309,39 +324,37 @@ const filterSections = (sections: Section[], query: string): Section[] => {
     );
   }
 
-const visibleSections = selectedGame
-  ? filterSections(selectedGame.sections, searchQuery)
-  : [];
 
 
 
-  return (
-    <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4.5 p-5.5 pb-15">
-        {/* Sidebar */}
+
+return (
+  <div className="min-h-screen bg-[#efefe8] dark:bg-[#0f1115] transition-colors">
+
+    {/* GRID */}
+    <div
+      className={`
+        grid
+        gap-4.5
+        p-5.5 pb-15
+        ${readingMode ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-[320px_1fr]"}
+      `}
+    >
+      {/* SIDEBAR */}
+      {!readingMode && (
         <aside className="lg:sticky lg:top-4.5 lg:self-start h-fit">
-          <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
+          <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] overflow-hidden">
             <div className="p-3.5 border-b border-[#d7d7d0] dark:border-[#272d3a] flex justify-between items-center">
-              <div className="brand">
-                <b className="text-[14px] text-[#222] dark:text-[#e7e9ee]">Çeviriler</b>
-              </div>
+              <b className="text-sm text-[#222] dark:text-[#e7e9ee]">Çeviriler</b>
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleTheme}
-                className="rounded-full gap-1.5 border-[#d7d7d0] dark:border-[#272d3a] bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] text-[#222] dark:text-[#e7e9ee] hover:bg-[rgba(0,0,0,.05)] dark:hover:bg-[rgba(255,255,255,.1)] text-xs"
+                className="rounded-full gap-1.5 text-xs"
               >
-                {isDark ? (
-                  <>
-                    <Sun className="h-4 w-4" />
-                    Light
-                  </>
-                ) : (
-                  <>
-                    <Moon className="h-4 w-4" />
-                    Dark
-                  </>
-                )}
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {isDark ? "Light" : "Dark"}
               </Button>
             </div>
 
@@ -350,30 +363,26 @@ const visibleSections = selectedGame
                 <button
                   key={game._id}
                   onClick={() => handleGameClick(game)}
-                  className={`flex gap-2.5 p-2.5 rounded-xl cursor-pointer transition-all text-left ${
+                  className={`flex gap-2.5 p-2.5 rounded-xl text-left ${
                     selectedGame?._id === game._id
-                      ? "bg-[rgba(31,111,235,.12)] border border-[rgba(31,111,235,.35)]"
-                      : "border border-transparent hover:bg-[rgba(0,0,0,.03)] dark:hover:bg-[rgba(255,255,255,.03)]"
+                      ? "bg-[rgba(31,111,235,.12)]"
+                      : "hover:bg-[rgba(0,0,0,.03)]"
                   }`}
                 >
-                  <div className="w-8.5 h-8.5 rounded-xl bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] grid place-items-center shrink-0 overflow-hidden">
+                  <div className="w-8.5 h-8.5 rounded-xl grid place-items-center">
                     {game.imageUrl ? (
-                      <img src={game.imageUrl} alt={game.name} className="w-full h-full object-cover" />
+                      <img src={game.imageUrl} className="w-full h-full object-cover rounded-xl" />
                     ) : (
-                      <span className="text-[20px]">{game.icon || "🎮"}</span>
+                      <span>{game.icon || "🎮"}</span>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-[14px] leading-tight text-[#222] dark:text-[#e7e9ee]">
+
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-[#222] dark:text-[#e7e9ee]">
                       {game.name}
                     </div>
-                    {game.desc && (
-                      <div className="text-[11px] leading-tight opacity-65 font-normal text-[#666] dark:text-[#a7adbb] mt-0.5">
-                        {game.desc}
-                      </div>
-                    )}
-                    <div className="text-[11px] text-[#666] dark:text-[#a7adbb] mt-1 opacity-70 flex items-center gap-1">
-                      <Eye className="w-3 h-3" /> {game.clickCount} görüntülenme
+                    <div className="text-xs opacity-70 flex items-center gap-1">
+                      <Eye className="w-3 h-3" /> {game.clickCount}
                     </div>
                   </div>
                 </button>
@@ -381,13 +390,19 @@ const visibleSections = selectedGame
             </div>
           </div>
         </aside>
+      )}
 
-        {/* Main */}
-        <main className="max-w-7xl mx-auto w-full">
-          {selectedGame ? (
-            <>
-<header className="mb-4.5 flex flex-col items-center text-center">
-  <h1 className="text-[34px] font-bold ...">
+      {/* MAIN */}
+      <main className={`w-full ${readingMode ? "max-w-3xl mx-auto" : ""}`}>
+        {selectedGame && (
+          <>
+           <header className="mb-5 grid grid-cols-[1fr_auto_1fr] items-center">
+  
+  {/* SOL: boş alan (denge için) */}
+  <div />
+
+  {/* ORTA: BAŞLIK */}
+  <h1 className="text-[32px] font-bold text-[#e7e9ee] text-center">
     {selectedGame.name}
   </h1>
 
@@ -415,72 +430,64 @@ const visibleSections = selectedGame
 </div>
 </header>
 
-              <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] overflow-hidden">
-                {visibleSections.map((section, idx) => {
-                  const sectionId = `section-${idx}`;
-                  const isOpen = openSections.has(sectionId);
 
-                  return (
-                    <div key={idx} className="border-t border-[#d7d7d0] dark:border-[#272d3a] first:border-t-0">
-                      <button
-                        onClick={() => toggleSection(sectionId)}
-                        className="w-full p-4.5 flex justify-between items-center cursor-pointer hover:bg-[rgba(0,0,0,.02)] dark:hover:bg-[rgba(255,255,255,.02)] transition-colors text-left"
-                      >
-                        <div className="font-medium text-[16px] text-[#222] dark:text-[#e7e9ee]">{section.title}</div>
-                        <div
-                          className={`w-6.5 h-6.5 rounded-[10px] border border-[#d7d7d0] dark:border-[#272d3a] grid place-items-center bg-[rgba(255,255,255,.55)] dark:bg-[rgba(255,255,255,.06)] transition-transform ${
-                            isOpen ? "rotate-90 text-[#1f6feb] dark:text-[#6ea8ff]" : ""
-                          }`}
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </div>
-                      </button>
+            {/* CONTENT CARD */}
+            <div
+              className={`
+                bg-white dark:bg-[#151922]
+                border border-[#d7d7d0] dark:border-[#272d3a]
+                rounded-[14px]
+                overflow-hidden
+                ${readingMode ? "text-[15px]" : ""}
+              `}
+            >
+              {visibleSections.map((section, idx) => {
+                const sectionId = `section-${idx}`;
+                const isOpen = openSections.has(sectionId);
 
-                      {isOpen && (
-                        <div className="px-4.5 pb-4.5">
-                          {renderContentWithImages(section.content, section.images, section.callouts)}
+                return (
+                  <div key={idx} className="border-t first:border-t-0">
+                    <button
+                      onClick={() => toggleSection(sectionId)}
+                      className="w-full p-4.5 flex justify-between items-center"
+                    >
+                      <div className="font-medium">{section.title}</div>
+                      <ChevronRight className={isOpen ? "rotate-90" : ""} />
+                    </button>
 
-                          {section.subsections && section.subsections.length > 0 && (
-                            <div className="mt-2.5 space-y-2.5">
-                              {section.subsections.map((sub, subIdx) =>
-                                renderSubsection(sub, `${sectionId}-sub-${subIdx}`, 1),
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <footer className="mt-2 text-[13px] text-center text-[#666] dark:text-[#a7adbb]">{/*  */}</footer>
-            </>
-          ) : (
-            <div className="bg-white dark:bg-[#151922] border border-[#d7d7d0] dark:border-[#272d3a] rounded-[14px] shadow-[0_8px_24px_rgba(0,0,0,.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,.45)] p-12 text-center">
-              <p className="text-[#666] dark:text-[#a7adbb]">Henüz oyun eklenmemiş.</p>
+                    {isOpen && (
+                      <div className="px-4.5 pb-4.5">
+                        {renderContentWithImages(
+                          section.content,
+                          section.images,
+                          section.callouts
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </main>
-      </div>
+          </>
+        )}
+      </main>
+    </div>
 
-      {/* Buy Me a Coffee Button */}
+   {/* Buy Me a Coffee */}
+    {!readingMode && (
       <a
         href="https://buymeacoffee.com/rpgarsiv"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-4 left-4 z-50 transition-transform hover:scale-105"
+        className="fixed bottom-4 left-4 z-50"
       >
         <img
           src={isDark ? "/buy_me_a_coffee_dark.png" : "/buy_me_a_coffee_light.png"}
-          alt="Buy Me a Coffee"
-          className="h-10 w-auto"
-          onError={(e) => {
-            // Eğer light.png yoksa dark.png kullan
-            e.currentTarget.src = "/buy_me_a_coffee_dark.png";
-          }}
+          className="h-10"
         />
       </a>
-    </div>
-  );
+    )}
+
+  </div>
+);
 }
