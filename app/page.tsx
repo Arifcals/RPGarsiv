@@ -454,6 +454,21 @@ export default function Home() {
           }}
         />
       </a>
+
+<a
+  href="https://discord.gg/JMrbS34C3X"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="fixed bottom-16 left-4 z-50"
+>
+  <img
+    src="/discord_dark.png"
+    className="h-10"
+    alt="Discord"
+  />
+</a>
+
+
     </div>
   );
 }
