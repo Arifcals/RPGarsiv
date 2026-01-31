@@ -455,7 +455,6 @@ export default function Home() {
         />
       </a>
       
-    )}
 
 {/* Discord */}
 {!readingMode && (
