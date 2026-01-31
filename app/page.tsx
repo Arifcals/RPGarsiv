@@ -459,7 +459,7 @@ export default function Home() {
   href="https://discord.gg/JMrbS34C3X"
   target="_blank"
   rel="noopener noreferrer"
-  className="fixed bottom-16 left-4 z-50"
+  className="fixed bottom-4 left-4 z-50 transition-opacity hover:opacity-80"
 >
   <img
     src="/discord_dark.png"
