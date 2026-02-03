@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/peario",
-      "destination": "https://peario-client.vercel.app"
+      "destination": "https://peario-client.vercel.app/peario"
     },
     {
       "source": "/peario/:path*",
-      "destination": "https://peario-client.vercel.app/:path*"
+      "destination": "https://peario-client.vercel.app/peario/:path*"
     }
   ]
 }
